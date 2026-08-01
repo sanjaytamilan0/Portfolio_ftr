@@ -385,49 +385,78 @@ class _ExperienceCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  exp.role,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurpleAccent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  exp.duration,
-                  style: const TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            exp.company,
-            style: const TextStyle(fontSize: 18, color: Colors.white54, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            exp.description,
-            style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.6),
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-    ).animate().fade().slideX();
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.deepPurpleAccent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exp.role,
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            exp.company,
+                            style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      child: Text(
+                        exp.duration,
+                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  exp.description,
+                  style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.8),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fade().slideX(begin: 0.1);
   }
 }
 
@@ -440,54 +469,83 @@ class _EducationCard extends StatelessWidget {
     return Container(
       width: 800,
       margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              edu.imagePath,
-              width: 120,
-              height: 120,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 120,
-                height: 120,
-                color: Colors.white10,
-                child: const Icon(Icons.school, size: 60, color: Colors.white24),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: Image.asset(
+                edu.imagePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.white10,
+                  child: const Icon(Icons.school_outlined, size: 40, color: Colors.white54),
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 32),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   edu.institution,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, height: 1.3),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  edu.degree,
-                  style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.menu_book, color: Colors.deepPurpleAccent, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        edu.degree,
+                        style: const TextStyle(fontSize: 18, color: Colors.white70, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  edu.year,
-                  style: const TextStyle(fontSize: 16, color: Colors.white54),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, color: Colors.deepPurpleAccent, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      edu.year,
+                      style: const TextStyle(fontSize: 16, color: Colors.white54),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ],
       ),
-    ).animate().fade().slideX();
+    ).animate().fade().slideX(begin: 0.1);
   }
 }
 
