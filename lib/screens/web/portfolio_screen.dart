@@ -87,15 +87,44 @@ class _PortfolioContent extends StatelessWidget {
               
               const SizedBox(height: 30),
               
-              Wrap(
-                spacing: 20,
-                runSpacing: 20,
-                children: data.projects.map((project) => _ProjectCard(project: project)).toList(),
-              ).animate().fade(delay: 800.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95)),
+              _buildProjectRows(data.projects).animate().fade(delay: 800.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95)),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProjectRows(List<Project> projects) {
+    if (projects.isEmpty) return const SizedBox.shrink();
+    
+    final half = (projects.length / 2).ceil();
+    final row1 = projects.take(half).toList();
+    final row2 = projects.skip(half).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: row1.map((p) => Padding(
+              padding: const EdgeInsets.only(right: 20, bottom: 20), 
+              child: _ProjectCard(project: p),
+            )).toList(),
+          ),
+        ),
+        if (row2.isNotEmpty)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: row2.map((p) => Padding(
+                padding: const EdgeInsets.only(right: 20, bottom: 20), 
+                child: _ProjectCard(project: p),
+              )).toList(),
+            ),
+          ),
+      ],
     );
   }
 }
