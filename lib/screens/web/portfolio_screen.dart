@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/github_provider.dart';
@@ -243,10 +244,10 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 color: const Color(0xFF15151A),
                 child: Column(
                   children: [
-                    _sectionTitle('Get In Touch'),
+                    _sectionTitle("Let's Connect"),
                     const SizedBox(height: 20),
                     const Text(
-                      "Feel free to reach out for collaborations or just a friendly hello!",
+                      "I'm always open to discussing new projects, creative ideas or opportunities.",
                       style: TextStyle(fontSize: 18, color: Colors.white70),
                       textAlign: TextAlign.center,
                     ),
@@ -254,11 +255,11 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (data.socialLinks.github.isNotEmpty) _socialButton(Icons.code, data.socialLinks.github),
+                        if (data.socialLinks.github.isNotEmpty) _socialButton(FontAwesomeIcons.github, data.socialLinks.github),
                         const SizedBox(width: 20),
-                        if (data.socialLinks.linkedin.isNotEmpty) _socialButton(Icons.link, data.socialLinks.linkedin),
+                        if (data.socialLinks.linkedin.isNotEmpty) _socialButton(FontAwesomeIcons.linkedinIn, data.socialLinks.linkedin),
                         const SizedBox(width: 20),
-                        if (data.socialLinks.email.isNotEmpty) _socialButton(Icons.email, "mailto:${data.socialLinks.email}"),
+                        if (data.socialLinks.email.isNotEmpty) _socialButton(FontAwesomeIcons.solidEnvelope, "mailto:${data.socialLinks.email}"),
                       ],
                     ),
                     const SizedBox(height: 40),
@@ -351,7 +352,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
           shape: BoxShape.circle,
           border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.5)),
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: FaIcon(icon, color: Colors.white, size: 28),
       ),
     );
   }
