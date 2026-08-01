@@ -5,7 +5,7 @@ import '../models/portfolio_data.dart';
 
 // You will need to set these to your actual GitHub username and repository name
 const String githubUsername = 'sanjaytamilan0';
-const String githubRepo = 'resume-web-view';
+const String githubRepo = 'Portfolio_ftr';
 const String filePath = 'database.json'; // The file in the root of your repo
 
 class TokenNotifier extends Notifier<String?> {
