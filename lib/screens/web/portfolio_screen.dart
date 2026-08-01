@@ -77,21 +77,14 @@ class _PortfolioContent extends StatelessWidget {
               
               const SizedBox(height: 40),
               if (data.skills.isNotEmpty) ...[
-                const Text(
-                  'Skills',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                ).animate().fade(delay: 500.ms, duration: 600.ms),
+                Center(
+                  child: const Text(
+                    'Skills',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  ).animate().fade(delay: 500.ms, duration: 600.ms),
+                ),
                 const SizedBox(height: 20),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: data.skills.map((skill) => Chip(
-                    label: Text(skill),
-                    backgroundColor: Colors.white.withOpacity(0.1),
-                    labelStyle: const TextStyle(color: Colors.white),
-                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
-                  )).toList(),
-                ).animate().fade(delay: 600.ms, duration: 600.ms),
+                _SkillMarquee(skills: data.skills).animate().fade(delay: 600.ms, duration: 600.ms),
                 const SizedBox(height: 40),
               ],
               
@@ -196,5 +189,74 @@ class _ProjectCard extends StatelessWidget {
     )
     .animate(onPlay: (controller) => controller.repeat(reverse: true))
     .shimmer(delay: 3000.ms, duration: 2000.ms, color: Colors.white10);
+  }
+}
+
+class _SkillMarquee extends StatefulWidget {
+  final List<String> skills;
+  const _SkillMarquee({required this.skills});
+
+  @override
+  State<_SkillMarquee> createState() => _SkillMarqueeState();
+}
+
+class _SkillMarqueeState extends State<_SkillMarquee> {
+  final ScrollController _controller = ScrollController();
+  bool _isHovering = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startScrolling();
+  }
+
+  void _startScrolling() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    while (mounted) {
+      if (_controller.hasClients && !_isHovering) {
+        await _controller.animateTo(
+          _controller.offset + 50.0,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.linear,
+        );
+      } else {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: SizedBox(
+        height: 50,
+        child: ListView.builder(
+          controller: _controller,
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final skill = widget.skills[index % widget.skills.length];
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Chip(
+                label: Text(skill, style: const TextStyle(fontWeight: FontWeight.w600)),
+                backgroundColor: Colors.white.withOpacity(0.1),
+                labelStyle: const TextStyle(color: Colors.white),
+                side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
