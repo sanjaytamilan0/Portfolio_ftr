@@ -15,6 +15,12 @@
     "Riverpod",
     "GetX"
   ],
+  "collegeDetails": {
+    "institution": "My College",
+    "degree": "B.Sc Computer Science",
+    "year": "2020-2024",
+    "imagePath": "assets/images/my_collage.jpg"
+  },
   "projects": [
     {
       "title": "Snapper",

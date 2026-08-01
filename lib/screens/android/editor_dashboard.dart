@@ -45,6 +45,10 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   late TextEditingController _skillController;
+  late TextEditingController _collegeInstitutionController;
+  late TextEditingController _collegeDegreeController;
+  late TextEditingController _collegeYearController;
+  late TextEditingController _collegeImageController;
   late List<String> _skills;
   late List<Project> _projects;
   bool _isSaving = false;
@@ -55,6 +59,10 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController = TextEditingController(text: widget.data.name);
     _bioController = TextEditingController(text: widget.data.bio);
     _skillController = TextEditingController();
+    _collegeInstitutionController = TextEditingController(text: widget.data.collegeDetails?.institution ?? '');
+    _collegeDegreeController = TextEditingController(text: widget.data.collegeDetails?.degree ?? '');
+    _collegeYearController = TextEditingController(text: widget.data.collegeDetails?.year ?? '');
+    _collegeImageController = TextEditingController(text: widget.data.collegeDetails?.imagePath ?? 'assets/images/my_collage.jpg');
     _skills = List.from(widget.data.skills);
     _projects = List.from(widget.data.projects);
   }
@@ -64,6 +72,10 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController.dispose();
     _bioController.dispose();
     _skillController.dispose();
+    _collegeInstitutionController.dispose();
+    _collegeDegreeController.dispose();
+    _collegeYearController.dispose();
+    _collegeImageController.dispose();
     super.dispose();
   }
 
@@ -76,6 +88,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
       name: _nameController.text,
       bio: _bioController.text,
       skills: _skills,
+      collegeDetails: CollegeDetails(
+        institution: _collegeInstitutionController.text,
+        degree: _collegeDegreeController.text,
+        year: _collegeYearController.text,
+        imagePath: _collegeImageController.text,
+      ),
       projects: _projects,
     );
 
@@ -191,6 +209,32 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 40),
+            const Text('College Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _collegeInstitutionController,
+              label: 'Institution Name',
+              icon: Icons.school,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _collegeDegreeController,
+              label: 'Degree',
+              icon: Icons.badge,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _collegeYearController,
+              label: 'Year',
+              icon: Icons.calendar_today,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _collegeImageController,
+              label: 'Image Path (e.g. assets/images/my_collage.jpg)',
+              icon: Icons.image,
             ),
             const SizedBox(height: 40),
             Row(

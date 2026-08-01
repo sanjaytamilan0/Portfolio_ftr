@@ -89,8 +89,63 @@ class _PortfolioContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 _SkillMarquee(skills: data.skills).animate().fade(delay: 600.ms, duration: 600.ms),
-                const SizedBox(height: 40),
               ],
+              
+              if (data.collegeDetails != null && data.collegeDetails!.institution.isNotEmpty) ...[
+                const SizedBox(height: 40),
+                Center(
+                  child: const Text(
+                    'Education',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  ).animate().fade(delay: 650.ms, duration: 600.ms),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          data.collegeDetails!.imagePath,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.school, size: 80, color: Colors.white24),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data.collegeDetails!.institution,
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              data.collegeDetails!.degree,
+                              style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              data.collegeDetails!.year,
+                              style: const TextStyle(fontSize: 16, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fade(delay: 700.ms, duration: 600.ms).slideY(begin: 0.1),
+              ],
+              
+              const SizedBox(height: 40),
               
               Center(
                 child: const Text(
