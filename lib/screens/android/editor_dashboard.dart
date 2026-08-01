@@ -45,10 +45,8 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   late TextEditingController _skillController;
-  late TextEditingController _collegeInstitutionController;
-  late TextEditingController _collegeDegreeController;
-  late TextEditingController _collegeYearController;
-  late TextEditingController _collegeImageController;
+  late TextEditingController _skillController;
+  late List<CollegeDetails> _education;
   late List<String> _skills;
   late List<Project> _projects;
   bool _isSaving = false;
@@ -59,10 +57,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController = TextEditingController(text: widget.data.name);
     _bioController = TextEditingController(text: widget.data.bio);
     _skillController = TextEditingController();
-    _collegeInstitutionController = TextEditingController(text: widget.data.collegeDetails?.institution ?? '');
-    _collegeDegreeController = TextEditingController(text: widget.data.collegeDetails?.degree ?? '');
-    _collegeYearController = TextEditingController(text: widget.data.collegeDetails?.year ?? '');
-    _collegeImageController = TextEditingController(text: widget.data.collegeDetails?.imagePath ?? 'assets/images/my_collage.jpg');
+    _education = List.from(widget.data.education);
     _skills = List.from(widget.data.skills);
     _projects = List.from(widget.data.projects);
   }
@@ -72,10 +67,6 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController.dispose();
     _bioController.dispose();
     _skillController.dispose();
-    _collegeInstitutionController.dispose();
-    _collegeDegreeController.dispose();
-    _collegeYearController.dispose();
-    _collegeImageController.dispose();
     super.dispose();
   }
 
@@ -88,12 +79,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
       name: _nameController.text,
       bio: _bioController.text,
       skills: _skills,
-      collegeDetails: CollegeDetails(
-        institution: _collegeInstitutionController.text,
-        degree: _collegeDegreeController.text,
-        year: _collegeYearController.text,
-        imagePath: _collegeImageController.text,
-      ),
+      education: _education,
       projects: _projects,
     );
 
@@ -122,6 +108,18 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
         });
       }
     }
+  }
+
+  void _addEducation() {
+    setState(() {
+      _education.add(CollegeDetails(institution: 'New College', degree: '', year: '', imagePath: 'assets/images/my_collage.jpg'));
+    });
+  }
+
+  void _removeEducation(int index) {
+    setState(() {
+      _education.removeAt(index);
+    });
   }
 
   void _addProject() {
@@ -211,31 +209,87 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
               }).toList(),
             ),
             const SizedBox(height: 40),
-            const Text('College Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _collegeInstitutionController,
-              label: 'Institution Name',
-              icon: Icons.school,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Education', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                ElevatedButton.icon(
+                  onPressed: _addEducation,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Education'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              controller: _collegeDegreeController,
-              label: 'Degree',
-              icon: Icons.badge,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _collegeYearController,
-              label: 'Year',
-              icon: Icons.calendar_today,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _collegeImageController,
-              label: 'Image Path (e.g. assets/images/my_collage.jpg)',
-              icon: Icons.image,
-            ),
+            ..._education.asMap().entries.map((entry) {
+              final index = entry.key;
+              final edu = entry.value;
+              return Card(
+                color: const Color(0xFF1E1E1E),
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextFormField(
+                              initialValue: edu.institution,
+                              label: 'Institution Name',
+                              icon: Icons.school,
+                              onChanged: (val) {
+                                _education[index] = edu.copyWith(institution: val);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => _removeEducation(index),
+                            tooltip: 'Delete Education',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: edu.degree,
+                        label: 'Degree',
+                        icon: Icons.badge,
+                        onChanged: (val) {
+                          _education[index] = edu.copyWith(degree: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: edu.year,
+                        label: 'Year',
+                        icon: Icons.calendar_today,
+                        onChanged: (val) {
+                          _education[index] = edu.copyWith(year: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: edu.imagePath,
+                        label: 'Image Path (e.g. assets/images/my_collage.jpg)',
+                        icon: Icons.image,
+                        onChanged: (val) {
+                          _education[index] = edu.copyWith(imagePath: val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

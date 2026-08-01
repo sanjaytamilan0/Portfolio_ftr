@@ -2,14 +2,14 @@ class PortfolioData {
   final String name;
   final String bio;
   final List<String> skills;
-  final CollegeDetails? collegeDetails;
+  final List<CollegeDetails> education;
   final List<Project> projects;
 
   PortfolioData({
     required this.name,
     required this.bio,
     required this.skills,
-    this.collegeDetails,
+    required this.education,
     required this.projects,
   });
 
@@ -18,7 +18,10 @@ class PortfolioData {
       name: json['name'] ?? '',
       bio: json['bio'] ?? '',
       skills: json['skills'] != null ? List<String>.from(json['skills']) : [],
-      collegeDetails: json['collegeDetails'] != null ? CollegeDetails.fromJson(json['collegeDetails']) : null,
+      education: (json['education'] as List<dynamic>?)
+              ?.map((e) => CollegeDetails.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       projects: (json['projects'] as List<dynamic>?)
               ?.map((e) => Project.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -31,7 +34,7 @@ class PortfolioData {
       'name': name,
       'bio': bio,
       'skills': skills,
-      'collegeDetails': collegeDetails?.toJson(),
+      'education': education.map((e) => e.toJson()).toList(),
       'projects': projects.map((e) => e.toJson()).toList(),
     };
   }
@@ -40,14 +43,14 @@ class PortfolioData {
     String? name,
     String? bio,
     List<String>? skills,
-    CollegeDetails? collegeDetails,
+    List<CollegeDetails>? education,
     List<Project>? projects,
   }) {
     return PortfolioData(
       name: name ?? this.name,
       bio: bio ?? this.bio,
       skills: skills ?? this.skills,
-      collegeDetails: collegeDetails ?? this.collegeDetails,
+      education: education ?? this.education,
       projects: projects ?? this.projects,
     );
   }
