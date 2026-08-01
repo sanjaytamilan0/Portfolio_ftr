@@ -33,14 +33,18 @@ class GithubService {
 
   Future<PortfolioData> fetchData() async {
     final url = Uri.parse('https://raw.githubusercontent.com/$githubUsername/$githubRepo/main/$filePath');
-    final response = await http.get(url);
+    try {
+      final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      return PortfolioData.fromJson(json);
-    } else {
-      // Return a default empty portfolio if not found
-      return PortfolioData(name: 'New Portfolio', bio: 'Welcome to my portfolio!', projects: []);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return PortfolioData.fromJson(json);
+      } else {
+        throw Exception();
+      }
+    } catch (e) {
+      // If file doesn't exist or other error, return default empty portfolio
+      return PortfolioData(name: 'New Portfolio', bio: 'Welcome to my portfolio!', skills: [], projects: []);
     }
   }
 
