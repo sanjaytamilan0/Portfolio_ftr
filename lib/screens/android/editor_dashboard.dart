@@ -44,6 +44,8 @@ class _EditorForm extends ConsumerStatefulWidget {
 class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
   late TextEditingController _bioController;
+  late TextEditingController _skillController;
+  late List<String> _skills;
   late List<Project> _projects;
   bool _isSaving = false;
 
@@ -52,6 +54,8 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     super.initState();
     _nameController = TextEditingController(text: widget.data.name);
     _bioController = TextEditingController(text: widget.data.bio);
+    _skillController = TextEditingController();
+    _skills = List.from(widget.data.skills);
     _projects = List.from(widget.data.projects);
   }
 
@@ -59,6 +63,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
+    _skillController.dispose();
     super.dispose();
   }
 
@@ -70,6 +75,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     final newData = widget.data.copyWith(
       name: _nameController.text,
       bio: _bioController.text,
+      skills: _skills,
       projects: _projects,
     );
 
@@ -114,81 +120,226 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(labelText: 'Name'),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _bioController,
-          decoration: const InputDecoration(labelText: 'Bio'),
-          maxLines: 3,
-        ),
-        const SizedBox(height: 32),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: ListView(
+          padding: const EdgeInsets.all(24),
           children: [
-            const Text('Projects', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            IconButton(onPressed: _addProject, icon: const Icon(Icons.add_circle)),
-          ],
-        ),
-        ..._projects.asMap().entries.map((entry) {
-          final index = entry.key;
-          final project = entry.value;
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Row(
+            const Text(
+              'Personal Info',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _nameController,
+              label: 'Name',
+              icon: Icons.person,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _bioController,
+              label: 'Bio',
+              icon: Icons.description,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 40),
+            const Text('Skills', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _skillController,
+                    label: 'Add Skill',
+                    icon: Icons.star,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_skillController.text.trim().isNotEmpty) {
+                      setState(() {
+                        _skills.add(_skillController.text.trim());
+                        _skillController.clear();
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  ),
+                  child: const Text('Add'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _skills.asMap().entries.map((entry) {
+                return Chip(
+                  label: Text(entry.value),
+                  backgroundColor: const Color(0xFF2A2A2A),
+                  labelStyle: const TextStyle(color: Colors.white),
+                  deleteIconColor: Colors.redAccent,
+                  onDeleted: () {
+                    setState(() {
+                      _skills.removeAt(entry.key);
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Projects', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                ElevatedButton.icon(
+                  onPressed: _addProject,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Project'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ..._projects.asMap().entries.map((entry) {
+              final index = entry.key;
+              final project = entry.value;
+              return Card(
+                color: const Color(0xFF1E1E1E),
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: project.title,
-                          decoration: const InputDecoration(labelText: 'Title'),
-                          onChanged: (val) {
-                            _projects[index] = project.copyWith(title: val);
-                          },
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextFormField(
+                              initialValue: project.title,
+                              label: 'Project Title',
+                              icon: Icons.title,
+                              onChanged: (val) {
+                                _projects[index] = project.copyWith(title: val);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => _removeProject(index),
+                            tooltip: 'Delete Project',
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _removeProject(index),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: project.description,
+                        label: 'Description',
+                        icon: Icons.notes,
+                        maxLines: 3,
+                        onChanged: (val) {
+                          _projects[index] = project.copyWith(description: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: project.url,
+                        label: 'Project URL',
+                        icon: Icons.link,
+                        onChanged: (val) {
+                          _projects[index] = project.copyWith(url: val);
+                        },
                       ),
                     ],
                   ),
-                  TextFormField(
-                    initialValue: project.description,
-                    decoration: const InputDecoration(labelText: 'Description'),
-                    onChanged: (val) {
-                      _projects[index] = project.copyWith(description: val);
-                    },
-                  ),
-                  TextFormField(
-                    initialValue: project.url,
-                    decoration: const InputDecoration(labelText: 'URL'),
-                    onChanged: (val) {
-                      _projects[index] = project.copyWith(url: val);
-                    },
-                  ),
-                ],
+                ),
+              );
+            }),
+            const SizedBox(height: 40),
+            SizedBox(
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _isSaving ? null : _saveData,
+                icon: _isSaving 
+                    ? const SizedBox(
+                        width: 24, 
+                        height: 24, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                    : const Icon(Icons.save),
+                label: Text(_isSaving ? 'Saving...' : 'Save to GitHub', style: const TextStyle(fontSize: 18)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ),
-          );
-        }),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _saveData,
-          style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-          child: _isSaving
-              ? const CircularProgressIndicator(color: Colors.white)
-              : const Text('Save to GitHub', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 40),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white54),
+        filled: true,
+        fillColor: const Color(0xFF1E1E1E),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required String initialValue,
+    required String label,
+    required IconData icon,
+    required Function(String) onChanged,
+    int maxLines = 1,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      maxLines: maxLines,
+      style: const TextStyle(color: Colors.white),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white54),
+        filled: true,
+        fillColor: const Color(0xFF2A2A2A),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
     );
   }
 }

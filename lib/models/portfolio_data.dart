@@ -1,11 +1,13 @@
 class PortfolioData {
   final String name;
   final String bio;
+  final List<String> skills;
   final List<Project> projects;
 
   PortfolioData({
     required this.name,
     required this.bio,
+    required this.skills,
     required this.projects,
   });
 
@@ -13,6 +15,7 @@ class PortfolioData {
     return PortfolioData(
       name: json['name'] ?? '',
       bio: json['bio'] ?? '',
+      skills: json['skills'] != null ? List<String>.from(json['skills']) : [],
       projects: (json['projects'] as List<dynamic>?)
               ?.map((e) => Project.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -24,6 +27,7 @@ class PortfolioData {
     return {
       'name': name,
       'bio': bio,
+      'skills': skills,
       'projects': projects.map((e) => e.toJson()).toList(),
     };
   }
@@ -31,11 +35,13 @@ class PortfolioData {
   PortfolioData copyWith({
     String? name,
     String? bio,
+    List<String>? skills,
     List<Project>? projects,
   }) {
     return PortfolioData(
       name: name ?? this.name,
       bio: bio ?? this.bio,
+      skills: skills ?? this.skills,
       projects: projects ?? this.projects,
     );
   }

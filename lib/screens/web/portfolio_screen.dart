@@ -71,19 +71,34 @@ class _PortfolioContent extends StatelessWidget {
               const SizedBox(height: 20),
               
               Text(
-                data.bio.isEmpty ? 'A passionate developer building amazing things.' : data.bio,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white60, height: 1.5),
-              ).animate().fade(delay: 400.ms, duration: 600.ms),
+                data.bio,
+                style: const TextStyle(fontSize: 18, height: 1.6, color: Colors.white70),
+              ).animate().fade(delay: 400.ms, duration: 600.ms).slideX(begin: -0.05),
               
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
+              if (data.skills.isNotEmpty) ...[
+                const Text(
+                  'Skills',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                ).animate().fade(delay: 500.ms, duration: 600.ms),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: data.skills.map((skill) => Chip(
+                    label: Text(skill),
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    labelStyle: const TextStyle(color: Colors.white),
+                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  )).toList(),
+                ).animate().fade(delay: 600.ms, duration: 600.ms),
+                const SizedBox(height: 40),
+              ],
               
-              Text(
-                'My Projects',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ).animate().fade(delay: 600.ms).slideX(begin: -0.1),
+              const Text(
+                'Projects',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+              ).animate().fade(delay: 700.ms, duration: 600.ms),
               
               const SizedBox(height: 30),
               

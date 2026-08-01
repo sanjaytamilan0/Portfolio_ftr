@@ -1,6 +1,20 @@
 {
   "name": "Sanjay",
   "bio": "Hello! I'm Sanjay, a passionate Flutter mobile app developer with 1.8 years of experience, focusing on creating intuitive and beautiful user interfaces. I love bringing ideas to life through code and constantly learning new technologies.\n\nMy journey in development started with a curiosity for how apps work, which quickly turned into a deep passion for building them. I enjoy solving complex problems and collaborating with teams to deliver high-quality software.",
+  "skills": [
+    "Flutter",
+    "Dart",
+    "REST APIs",
+    "Push Notifications",
+    "Responsive Design",
+    "Git",
+    "Razorpay Integration",
+    "Video Players (HLS, YouTube)",
+    "In-App Webview",
+    "Deep Linking",
+    "Riverpod",
+    "GetX"
+  ],
   "projects": [
     {
       "title": "Snapper",
