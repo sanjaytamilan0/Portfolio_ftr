@@ -1,0 +1,36 @@
+{
+  "name": "Sanjay",
+  "bio": "Hello! I'm Sanjay, a passionate Flutter mobile app developer with 1.8 years of experience, focusing on creating intuitive and beautiful user interfaces. I love bringing ideas to life through code and constantly learning new technologies.\n\nMy journey in development started with a curiosity for how apps work, which quickly turned into a deep passion for building them. I enjoy solving complex problems and collaborating with teams to deliver high-quality software.",
+  "projects": [
+    {
+      "title": "Snapper",
+      "description": "Snapper is an Android application designed to streamline e-commerce with integrated global payment handling through WebView. The app supports real-time updates via REST APIs, and features efficient state management using Riverpod. It also integrates Deeplinking for seamless deep navigation across the app, ensuring a smooth user experience.",
+      "url": "https://play.google.com/store/apps/details?id=com.webstormers.snapper&pcampaignid=web_share"
+    },
+    {
+      "title": "StarsNSigns",
+      "description": "A comprehensive course providing mobile application developed using Flutter. Features include robust REST API integration, seamless HLS video player functionality, and efficient state management with Riverpod and GetX.",
+      "url": "https://play.google.com/store/apps/details?id=com.starsnsigns&pcampaignid=web_share"
+    },
+    {
+      "title": "King Jobs",
+      "description": "A productivity application focused on simplifying the job search. Users can efficiently manage tasks, projects, and deadlines, while also leveraging a skill-based job searching feature to find highly relevant opportunities.",
+      "url": "https://play.google.com/store/apps/details?id=com.kingsjobs.app&pcampaignid=web_share"
+    },
+    {
+      "title": "Matrimony App",
+      "description": "A robust matrimony application designed to connect users, featuring a fully functional web view experience with seamless error handling and native Android support for an enhanced user interface and performance.",
+      "url": ""
+    },
+    {
+      "title": "Pearl King",
+      "description": "Pearl King is a single-vendor e-commerce application designed for seamless online sales. The app offers a user-friendly interface for browsing, purchasing products, and managing sales orders. It supports real-time updates using REST APIs and incorporates efficient state management with Riverpod for a smooth user experience.",
+      "url": "https://play.google.com/store/apps/details?id=com.webstormers.svecom&pcampaignid=web_share"
+    },
+    {
+      "title": "Narain Promotors",
+      "description": "Narain Promotors is an application designed to streamline customer service and issue management for service-based businesses. The app provides an efficient platform for managing customer requests, tracking service appointments, and handling maintenance issues like pipe repairs, wall issues, and broken appliances. It supports real-time updates using REST APIs for issue tracking and integrates Riverpod for state management, ensuring a smooth and responsive user experience for both customers and staff.",
+      "url": "https://play.google.com/store/apps/details?id=com.webstormers.narain_promoters&pcampaignid=web_share"
+    }
+  ]
+}
