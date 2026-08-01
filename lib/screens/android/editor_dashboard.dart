@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:file_picker/file_picker.dart';
 import '../../providers/github_provider.dart';
 import '../../models/portfolio_data.dart';
 
@@ -43,7 +44,9 @@ class _EditorForm extends ConsumerStatefulWidget {
 
 class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
+  late TextEditingController _titleController;
   late TextEditingController _bioController;
+  late TextEditingController _profileImageController;
   late TextEditingController _skillController;
   late List<CollegeDetails> _education;
   late List<Experience> _experience;
@@ -54,12 +57,15 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _emailController;
   late TextEditingController _resumeLinkController;
   bool _isSaving = false;
+  bool _isUploadingPdf = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.data.name);
+    _titleController = TextEditingController(text: widget.data.title);
     _bioController = TextEditingController(text: widget.data.bio);
+    _profileImageController = TextEditingController(text: widget.data.profileImage);
     _skillController = TextEditingController();
     _education = List.from(widget.data.education);
     _experience = List.from(widget.data.experience);
@@ -74,7 +80,9 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   @override
   void dispose() {
     _nameController.dispose();
+    _titleController.dispose();
     _bioController.dispose();
+    _profileImageController.dispose();
     _skillController.dispose();
     _githubController.dispose();
     _linkedinController.dispose();
@@ -90,6 +98,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     
     final newData = widget.data.copyWith(
       name: _nameController.text,
+      title: _titleController.text,
       bio: _bioController.text,
       skills: _skills,
       education: _education,
@@ -101,6 +110,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
         email: _emailController.text,
       ),
       resumeLink: _resumeLinkController.text,
+      profileImage: _profileImageController.text,
     );
 
     try {
@@ -126,6 +136,86 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
         setState(() {
           _isSaving = false;
         });
+      }
+    }
+  }
+
+  Future<void> _uploadPdf() async {
+    try {
+      FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.bytes != null) {
+          setState(() {
+            _isUploadingPdf = true;
+          });
+          
+          final service = ref.read(githubServiceProvider);
+          // Overwrites the same file to prevent multiple files
+          final uploadedUrl = await service.uploadFile('assets/resume.pdf', file.bytes!);
+          
+          setState(() {
+            _resumeLinkController.text = uploadedUrl;
+          });
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('PDF uploaded successfully! Remember to save.')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload PDF: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingPdf = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadImage(Function(String) onUploaded) async {
+    try {
+      FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.image,
+      );
+
+      if (result != null) {
+        final file = result.files.first;
+        if (file.bytes != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Uploading image...')),
+          );
+          final service = ref.read(githubServiceProvider);
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final fileName = file.name.replaceAll(' ', '_');
+          final uploadedUrl = await service.uploadFile('assets/images/upload_$timestamp\_$fileName', file.bytes!);
+          
+          onUploaded(uploadedUrl);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image uploaded successfully!')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image: $e')),
+        );
       }
     }
   }
@@ -186,10 +276,30 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
+              controller: _titleController,
+              label: 'Title',
+              icon: Icons.work,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _bioController,
               label: 'Bio',
               icon: Icons.description,
               maxLines: 4,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _profileImageController,
+              label: 'Profile Image URL',
+              icon: Icons.image,
+              suffixIcon: Icons.upload_file,
+              onSuffixTap: () {
+                _pickAndUploadImage((url) {
+                  setState(() {
+                    _profileImageController.text = url;
+                  });
+                });
+              },
             ),
             const SizedBox(height: 40),
             const Text('Skills', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -265,11 +375,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                 elevation: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: ExpansionTile(
+                  title: Text(edu.institution.isNotEmpty ? edu.institution : 'New Education', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  collapsedIconColor: Colors.white70,
+                  iconColor: Colors.deepPurpleAccent,
+                  childrenPadding: const EdgeInsets.all(20.0),
+                  children: [
                       Row(
                         children: [
                           Expanded(
@@ -317,8 +428,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                           _education[index] = edu.copyWith(imagePath: val);
                         },
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               );
             }),
@@ -347,11 +457,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                 elevation: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: ExpansionTile(
+                  title: Text(exp.role.isNotEmpty ? exp.role : 'New Role', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  collapsedIconColor: Colors.white70,
+                  iconColor: Colors.deepPurpleAccent,
+                  childrenPadding: const EdgeInsets.all(20.0),
+                  children: [
                       Row(
                         children: [
                           Expanded(
@@ -400,8 +511,25 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                           _experience[index] = exp.copyWith(description: val);
                         },
                       ),
-                    ],
-                  ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        key: ValueKey('exp_img_${index}_${exp.imagePath}'),
+                        initialValue: exp.imagePath,
+                        label: 'Image URL (Optional)',
+                        icon: Icons.image,
+                        suffixIcon: Icons.upload_file,
+                        onSuffixTap: () {
+                          _pickAndUploadImage((url) {
+                            setState(() {
+                              _experience[index] = exp.copyWith(imagePath: url);
+                            });
+                          });
+                        },
+                        onChanged: (val) {
+                          _experience[index] = exp.copyWith(imagePath: val);
+                        },
+                      ),
+                  ],
                 ),
               );
             }),
@@ -430,11 +558,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                 elevation: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: ExpansionTile(
+                  title: Text(project.title.isNotEmpty ? project.title : 'New Project', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  collapsedIconColor: Colors.white70,
+                  iconColor: Colors.deepPurpleAccent,
+                  childrenPadding: const EdgeInsets.all(20.0),
+                  children: [
                       Row(
                         children: [
                           Expanded(
@@ -457,6 +586,24 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextFormField(
+                        initialValue: project.companyName,
+                        label: 'Company Name (Optional)',
+                        icon: Icons.business,
+                        onChanged: (val) {
+                          _projects[index] = project.copyWith(companyName: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: project.role,
+                        label: 'Role (Optional)',
+                        icon: Icons.person,
+                        onChanged: (val) {
+                          _projects[index] = project.copyWith(role: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
                         initialValue: project.description,
                         label: 'Description',
                         icon: Icons.notes,
@@ -474,8 +621,25 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                           _projects[index] = project.copyWith(url: val);
                         },
                       ),
-                    ],
-                  ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        key: ValueKey('proj_img_${index}_${project.imagePath}'),
+                        initialValue: project.imagePath,
+                        label: 'Image URL (Optional)',
+                        icon: Icons.image,
+                        suffixIcon: Icons.upload_file,
+                        onSuffixTap: () {
+                          _pickAndUploadImage((url) {
+                            setState(() {
+                              _projects[index] = project.copyWith(imagePath: url);
+                            });
+                          });
+                        },
+                        onChanged: (val) {
+                          _projects[index] = project.copyWith(imagePath: val);
+                        },
+                      ),
+                  ],
                 ),
               );
             }),
@@ -500,10 +664,29 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
               icon: Icons.email,
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              controller: _resumeLinkController,
-              label: 'Resume URL (e.g. Google Drive Link or assets/resume.pdf)',
-              icon: Icons.picture_as_pdf,
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _resumeLinkController,
+                    label: 'Resume URL',
+                    icon: Icons.picture_as_pdf,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: _isUploadingPdf ? null : _uploadPdf,
+                  icon: _isUploadingPdf 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                      : const Icon(Icons.upload_file),
+                  label: const Text('Upload PDF'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 40),
             SizedBox(
@@ -537,6 +720,8 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     required String label,
     required IconData icon,
     int maxLines = 1,
+    IconData? suffixIcon,
+    VoidCallback? onSuffixTap,
   }) {
     return TextField(
       controller: controller,
@@ -546,6 +731,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white54),
+        suffixIcon: suffixIcon != null
+            ? IconButton(
+                icon: Icon(suffixIcon, color: Colors.deepPurpleAccent),
+                onPressed: onSuffixTap,
+              )
+            : null,
         filled: true,
         fillColor: const Color(0xFF1E1E1E),
         border: OutlineInputBorder(
@@ -557,13 +748,17 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   }
 
   Widget _buildTextFormField({
+    Key? key,
     required String initialValue,
     required String label,
     required IconData icon,
     required Function(String) onChanged,
     int maxLines = 1,
+    IconData? suffixIcon,
+    VoidCallback? onSuffixTap,
   }) {
     return TextFormField(
+      key: key,
       initialValue: initialValue,
       maxLines: maxLines,
       style: const TextStyle(color: Colors.white),
@@ -572,6 +767,12 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white54),
+        suffixIcon: suffixIcon != null
+            ? IconButton(
+                icon: Icon(suffixIcon, color: Colors.deepPurpleAccent),
+                onPressed: onSuffixTap,
+              )
+            : null,
         filled: true,
         fillColor: const Color(0xFF2A2A2A),
         border: OutlineInputBorder(

@@ -43,6 +43,39 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D12),
+      endDrawer: Drawer(
+        backgroundColor: const Color(0xFF15151A),
+        child: portfolioData.when(
+          data: (data) => ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              const SizedBox(height: 40),
+              const Text("Navigation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 40),
+              ListTile(title: const Text("Home", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_homeKey); }),
+              ListTile(title: const Text("About", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_aboutKey); }),
+              ListTile(title: const Text("Skills", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_skillsKey); }),
+              ListTile(title: const Text("Experience", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_experienceKey); }),
+              ListTile(title: const Text("Projects", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_projectsKey); }),
+              ListTile(title: const Text("Contact", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_contactKey); }),
+              const Divider(color: Colors.white24),
+              ListTile(
+                title: const Text("Download CV", style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (data.resumeLink.trim().isNotEmpty) {
+                    _launchURL(data.resumeLink);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No CV uploaded yet!')));
+                  }
+                },
+              ),
+            ],
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => const SizedBox(),
+        ),
+      ),
       floatingActionButton: enableWebEditor
           ? FloatingActionButton(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditorEntry())),
@@ -95,13 +128,15 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                           ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
                           const SizedBox(height: 16),
                           Text(
-                            "Mobile & Web Developer",
+                            data.title.isEmpty ? "Mobile & Web Developer" : data.title,
                             style: TextStyle(fontSize: 28, color: Colors.white70, fontWeight: FontWeight.w500),
                             textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                           ).animate().fade(delay: 400.ms).slideY(begin: 0.2),
                           const SizedBox(height: 32),
-                          Row(
-                            mainAxisAlignment: isDesktop ? MainAxisAlignment.start : MainAxisAlignment.center,
+                          Wrap(
+                            alignment: isDesktop ? WrapAlignment.start : WrapAlignment.center,
+                            spacing: 16,
+                            runSpacing: 16,
                             children: [
                               ElevatedButton(
                                 onPressed: () => _scrollTo(_contactKey),
@@ -112,16 +147,34 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                                 ),
                                 child: const Text("Hire Me", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
-                              const SizedBox(width: 16),
-                              if (data.resumeLink.isNotEmpty)
-                                OutlinedButton(
-                                  onPressed: () => _launchURL(data.resumeLink),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Colors.deepPurpleAccent, width: 2),
-                                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                                  ),
-                                  child: const Text("Resume", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                              OutlinedButton(
+                                onPressed: () {
+                                  if (data.resumeLink.trim().isNotEmpty) {
+                                    _launchURL(data.resumeLink);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('No CV uploaded yet!')),
+                                    );
+                                  }
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.deepPurpleAccent, width: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                ),
+                                child: const Text("Download CV", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                              if (data.socialLinks.github.isNotEmpty)
+                                IconButton(
+                                  icon: const FaIcon(FontAwesomeIcons.github, size: 32, color: Colors.white),
+                                  onPressed: () => _launchURL(data.socialLinks.github),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                ),
+                              if (data.socialLinks.linkedin.isNotEmpty)
+                                IconButton(
+                                  icon: const FaIcon(FontAwesomeIcons.linkedinIn, size: 32, color: Colors.white),
+                                  onPressed: () => _launchURL(data.socialLinks.linkedin),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                 ),
                             ],
                           ).animate().fade(delay: 600.ms).slideY(begin: 0.2),
@@ -135,8 +188,10 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [BoxShadow(color: Colors.deepPurpleAccent.withOpacity(0.3), blurRadius: 40, spreadRadius: 10)],
                         border: Border.all(color: Colors.deepPurpleAccent, width: 4),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/my_info.jpeg'),
+                        image: DecorationImage(
+                          image: data.profileImage.isNotEmpty
+                              ? NetworkImage(data.profileImage) as ImageProvider
+                              : const AssetImage('assets/images/my_info.jpeg'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -173,7 +228,16 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   children: [
                     _sectionTitle('My Skills'),
                     const SizedBox(height: 40),
-                    if (data.skills.isNotEmpty) _SkillMarquee(skills: data.skills),
+                    if (data.skills.isNotEmpty) ...[
+                      _SkillMarquee(skills: data.skills),
+                      const SizedBox(height: 20),
+                      _SkillMarquee(
+                        skills: data.skills.length > 1 
+                            ? [...data.skills.sublist(data.skills.length ~/ 2), ...data.skills.sublist(0, data.skills.length ~/ 2)]
+                            : data.skills, 
+                        reverse: true
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -218,7 +282,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   children: [
                     _sectionTitle('Projects'),
                     const SizedBox(height: 40),
-                    _buildProjectGrid(data.projects, isDesktop),
+                    _buildProjectGrid(data.projects, isDesktop, context),
                   ],
                 ),
               ),
@@ -252,13 +316,13 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 20,
+                      runSpacing: 20,
                       children: [
                         if (data.socialLinks.github.isNotEmpty) _socialButton(FontAwesomeIcons.github, data.socialLinks.github),
-                        const SizedBox(width: 20),
                         if (data.socialLinks.linkedin.isNotEmpty) _socialButton(FontAwesomeIcons.linkedinIn, data.socialLinks.linkedin),
-                        const SizedBox(width: 20),
                         if (data.socialLinks.email.isNotEmpty) _socialButton(FontAwesomeIcons.solidEnvelope, "mailto:${data.socialLinks.email}"),
                       ],
                     ),
@@ -283,34 +347,45 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                 color: Colors.black.withOpacity(0.4),
                 child: Row(
-                  mainAxisAlignment: isDesktop ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Text(
+                      "FlutterDev",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5),
+                    ),
                     if (isDesktop)
-                      const Text(
-                        "Portfolio.",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5),
-                      ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                      Row(
                         children: [
                           _navItem("Home", _homeKey),
                           _navItem("About", _aboutKey),
                           _navItem("Skills", _skillsKey),
                           _navItem("Experience", _experienceKey),
                           _navItem("Projects", _projectsKey),
-                          if (data.resumeLink.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: TextButton(
-                                onPressed: () => _launchURL(data.resumeLink),
-                                child: const Text("Resume", style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextButton(
+                              onPressed: () {
+                                if (data.resumeLink.trim().isNotEmpty) {
+                                  _launchURL(data.resumeLink);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('No CV uploaded yet!')),
+                                  );
+                                }
+                              },
+                              child: const Text("Download CV", style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
+                          ),
                           _navItem("Contact", _contactKey),
                         ],
+                      )
+                    else
+                      Builder(
+                        builder: (ctx) => IconButton(
+                          icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                          onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -364,12 +439,36 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
     }
   }
 
-  Widget _buildProjectGrid(List<Project> projects, bool isDesktop) {
-    return Wrap(
-      spacing: 30,
-      runSpacing: 30,
-      alignment: WrapAlignment.center,
-      children: projects.map((p) => _ProjectCard(project: p, isDesktop: isDesktop)).toList(),
+  Widget _buildProjectGrid(List<Project> projects, bool isDesktop, BuildContext context) {
+    final firstHalf = projects.sublist(0, (projects.length / 2).ceil());
+    final secondHalf = projects.sublist((projects.length / 2).ceil());
+
+    Widget buildRow(List<Project> rowProjects) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: rowProjects.map((p) => Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: SizedBox(
+              width: isDesktop ? 400 : MediaQuery.of(context).size.width * 0.85,
+              child: _ProjectCard(project: p, isDesktop: isDesktop),
+            ),
+          )).toList(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildRow(firstHalf),
+        if (secondHalf.isNotEmpty) ...[
+          const SizedBox(height: 30),
+          buildRow(secondHalf),
+        ],
+      ],
     );
   }
 }
@@ -380,10 +479,13 @@ class _ExperienceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Container(
-      width: 800,
+      constraints: const BoxConstraints(maxWidth: 800),
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(24),
@@ -396,66 +498,146 @@ class _ExperienceCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.deepPurpleAccent.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Column(
+      child: isMobile 
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurpleAccent.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 28),
+                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             exp.role,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text(
                             exp.company,
-                            style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                            style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
-                      ),
-                      child: Text(
-                        exp.duration,
-                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: Text(
+                    exp.duration,
+                    style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   exp.description,
-                  style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.8),
+                  style: const TextStyle(fontSize: 15, color: Colors.white70, height: 1.6),
+                ),
+                if (exp.imagePath.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      exp.imagePath,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurpleAccent.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  exp.role,
+                                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  exp.company,
+                                  style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            ),
+                            child: Text(
+                              exp.duration,
+                              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        exp.description,
+                        style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.8),
+                      ),
+                      if (exp.imagePath.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            exp.imagePath,
+                            height: 300,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     ).animate().fade().slideX(begin: 0.1);
   }
 }
@@ -466,10 +648,13 @@ class _EducationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Container(
-      width: 800,
+      constraints: const BoxConstraints(maxWidth: 800),
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(24),
@@ -482,83 +667,153 @@ class _EducationCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(100),
-              child: Image.asset(
-                edu.imagePath,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.white10,
-                  child: const Icon(Icons.school_outlined, size: 40, color: Colors.white54),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 32),
-          Expanded(
-            child: Column(
+      child: isMobile
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  edu.institution,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, height: 1.3),
-                ),
-                const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.menu_book, color: Colors.deepPurpleAccent, size: 20),
-                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: Image.asset(
+                          edu.imagePath,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 60,
+                            height: 60,
+                            color: Colors.white10,
+                            child: const Icon(Icons.school_outlined, size: 28, color: Colors.white54),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
                     Expanded(
-                      child: Text(
-                        edu.degree,
-                        style: const TextStyle(fontSize: 18, color: Colors.white70, fontWeight: FontWeight.w500),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            edu.institution,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            edu.degree,
+                            style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today, color: Colors.deepPurpleAccent, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      edu.year,
-                      style: const TextStyle(fontSize: 16, color: Colors.white54),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: Text(
+                    edu.year,
+                    style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Image.asset(
+                      edu.imagePath,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 80,
+                        height: 80,
+                        color: Colors.white10,
+                        child: const Icon(Icons.school_outlined, size: 40, color: Colors.white54),
+                      ),
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 32),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              edu.institution,
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              edu.degree,
+                              style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        ),
+                        child: Text(
+                          edu.year,
+                          style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     ).animate().fade().slideX(begin: 0.1);
   }
 }
 
-class _ProjectCard extends StatelessWidget {
+class _ProjectCard extends StatefulWidget {
   final Project project;
   final bool isDesktop;
 
   const _ProjectCard({required this.project, required this.isDesktop});
 
   @override
+  State<_ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends State<_ProjectCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      width: isDesktop ? 400 : double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E24),
@@ -571,19 +826,71 @@ class _ProjectCard extends StatelessWidget {
           const Icon(Icons.folder_open, size: 40, color: Colors.deepPurpleAccent),
           const SizedBox(height: 20),
           Text(
-            project.title,
+            widget.project.title,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
           ),
+          if (widget.project.role.isNotEmpty || widget.project.companyName.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              [if (widget.project.role.isNotEmpty) widget.project.role, if (widget.project.companyName.isNotEmpty) widget.project.companyName].join(' at '),
+              style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(
-            project.description,
-            style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
-          ),
+          LayoutBuilder(builder: (context, size) {
+            final span = TextSpan(text: widget.project.description, style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5));
+            final tp = TextPainter(text: span, maxLines: 7, textDirection: TextDirection.ltr);
+            tp.layout(maxWidth: size.maxWidth);
+            
+            if (tp.didExceedMaxLines) {
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.project.description,
+                      style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
+                      maxLines: _isExpanded ? null : 7,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () => setState(() => _isExpanded = !_isExpanded),
+                      child: Text(
+                        _isExpanded ? "View Less" : "View More",
+                        style: const TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              return Text(
+                widget.project.description,
+                style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
+              );
+            }
+          }),
+          if (widget.project.imagePath.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                widget.project.imagePath,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
-          if (project.url.isNotEmpty)
+          if (widget.project.url.isNotEmpty)
             InkWell(
               onTap: () async {
-                final url = Uri.parse(project.url);
+                final url = Uri.parse(widget.project.url);
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 }
@@ -599,15 +906,14 @@ class _ProjectCard extends StatelessWidget {
             ),
         ],
       ),
-    )
-    .animate(onPlay: (controller) => controller.repeat(reverse: true))
-    .shimmer(delay: 4000.ms, duration: 2000.ms, color: Colors.white10);
+    );
   }
 }
 
 class _SkillMarquee extends StatefulWidget {
   final List<String> skills;
-  const _SkillMarquee({required this.skills});
+  final bool reverse;
+  const _SkillMarquee({required this.skills, this.reverse = false});
 
   @override
   State<_SkillMarquee> createState() => _SkillMarqueeState();
@@ -654,6 +960,7 @@ class _SkillMarqueeState extends State<_SkillMarquee> {
         child: ListView.builder(
           controller: _controller,
           scrollDirection: Axis.horizontal,
+          reverse: widget.reverse,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
             final skill = widget.skills[index % widget.skills.length];
