@@ -45,7 +45,6 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
   late TextEditingController _bioController;
   late TextEditingController _skillController;
-  late TextEditingController _skillController;
   late List<CollegeDetails> _education;
   late List<String> _skills;
   late List<Project> _projects;

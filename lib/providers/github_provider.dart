@@ -44,7 +44,7 @@ class GithubService {
       }
     } catch (e) {
       // If file doesn't exist or other error, return default empty portfolio
-      return PortfolioData(name: 'New Portfolio', bio: 'Welcome to my portfolio!', skills: [], projects: []);
+      return PortfolioData(name: 'New Portfolio', bio: 'Welcome to my portfolio!', skills: [], education: [], projects: []);
     }
   }
 
