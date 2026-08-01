@@ -353,7 +353,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         ),
         child: Icon(icon, color: Colors.white, size: 28),
       ),
-    ).animate(onHover: true).scale(end: const Offset(1.1, 1.1));
+    );
   }
 
   Future<void> _launchURL(String url) async {
