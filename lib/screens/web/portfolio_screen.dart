@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/github_provider.dart';
@@ -42,25 +43,25 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
     final portfolioData = ref.watch(portfolioDataProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D12),
+      
       endDrawer: Drawer(
-        backgroundColor: const Color(0xFF15151A),
+        
         child: portfolioData.when(
           data: (data) => ListView(
             padding: const EdgeInsets.all(24),
             children: [
               const SizedBox(height: 40),
-              const Text("Navigation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Navigation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: 40),
-              ListTile(title: const Text("Home", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_homeKey); }),
-              ListTile(title: const Text("About", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_aboutKey); }),
-              ListTile(title: const Text("Skills", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_skillsKey); }),
-              ListTile(title: const Text("Experience", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_experienceKey); }),
-              ListTile(title: const Text("Projects", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_projectsKey); }),
-              ListTile(title: const Text("Contact", style: TextStyle(color: Colors.white)), onTap: () { Navigator.pop(context); _scrollTo(_contactKey); }),
-              const Divider(color: Colors.white24),
+              ListTile(title: Text("Home", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_homeKey); }),
+              ListTile(title: Text("About", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_aboutKey); }),
+              ListTile(title: Text("Skills", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_skillsKey); }),
+              ListTile(title: Text("Experience", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_experienceKey); }),
+              ListTile(title: Text("Projects", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_projectsKey); }),
+              ListTile(title: Text("Contact", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), onTap: () { Navigator.pop(context); _scrollTo(_contactKey); }),
+              Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)),
               ListTile(
-                title: const Text("Download CV", style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold)),
+                title: Text("Download CV", style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.pop(context);
                   if (data.resumeLink.trim().isNotEmpty) {
@@ -68,6 +69,18 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No CV uploaded yet!')));
                   }
+                },
+              ),
+              ListTile(
+                title: Text("Toggle Theme", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                trailing: Icon(
+                  Theme.of(context).brightness == Brightness.dark ? Icons.light_mode : Icons.dark_mode,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                onTap: () {
+                  final current = ref.read(themeModeProvider);
+                  ref.read(themeModeProvider.notifier).state =
+                      current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
                 },
               ),
             ],
@@ -86,7 +99,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
       body: portfolioData.when(
         data: (data) => _buildContent(data),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error', style: const TextStyle(color: Colors.red))),
+        error: (error, stack) => Center(child: Text('Error: $error', style: TextStyle(color: Colors.red))),
       ),
     );
   }
@@ -123,14 +136,27 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                           const SizedBox(height: 12),
                           Text(
                             data.name.isEmpty ? 'Your Name' : data.name,
-                            style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
+                            style: TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
                             textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                           ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
                           const SizedBox(height: 16),
-                          Text(
-                            data.title.isEmpty ? "Mobile & Web Developer" : data.title,
-                            style: TextStyle(fontSize: 28, color: Colors.white70, fontWeight: FontWeight.w500),
-                            textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+                          SizedBox(
+                            height: 40,
+                            child: DefaultTextStyle(
+                              style: TextStyle(fontSize: 28, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w500),
+                              textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+                              child: AnimatedTextKit(
+                                repeatForever: true,
+                                animatedTexts: data.typewriterTexts.isNotEmpty
+                                    ? data.typewriterTexts.map((text) => TypewriterAnimatedText(text)).toList()
+                                    : [
+                                        TypewriterAnimatedText(data.title.isEmpty ? "Mobile & Web Developer" : data.title),
+                                        TypewriterAnimatedText("Building beautiful mobile experiences"),
+                                        TypewriterAnimatedText("Architecting scalable Flutter apps"),
+                                        TypewriterAnimatedText("Turning ideas into reality"),
+                                      ],
+                              ),
+                            ),
                           ).animate().fade(delay: 400.ms).slideY(begin: 0.2),
                           const SizedBox(height: 32),
                           Wrap(
@@ -145,7 +171,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 ),
-                                child: const Text("Hire Me", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text("Hire Me", style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                               ),
                               OutlinedButton(
                                 onPressed: () {
@@ -158,42 +184,76 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                                   }
                                 },
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.deepPurpleAccent, width: 2),
+                                  side: BorderSide(color: Colors.deepPurpleAccent, width: 2),
                                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 ),
-                                child: const Text("Download CV", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text("Download CV", style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                               ),
                               if (data.socialLinks.github.isNotEmpty)
                                 IconButton(
-                                  icon: const FaIcon(FontAwesomeIcons.github, size: 32, color: Colors.white),
+                                  icon: FaIcon(FontAwesomeIcons.github, size: 32, color: Theme.of(context).colorScheme.onSurface),
                                   onPressed: () => _launchURL(data.socialLinks.github),
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                 ),
                               if (data.socialLinks.linkedin.isNotEmpty)
                                 IconButton(
-                                  icon: const FaIcon(FontAwesomeIcons.linkedinIn, size: 32, color: Colors.white),
+                                  icon: FaIcon(FontAwesomeIcons.linkedinIn, size: 32, color: Theme.of(context).colorScheme.onSurface),
                                   onPressed: () => _launchURL(data.socialLinks.linkedin),
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                 ),
-                            ],
+                            ].where((e) => e != null).cast<Widget>().toList(),
                           ).animate().fade(delay: 600.ms).slideY(begin: 0.2),
+                          const SizedBox(height: 48),
+                          // PROOF OF WORK METRICS
+                          Wrap(
+                            spacing: 32,
+                            runSpacing: 16,
+                            alignment: isDesktop ? WrapAlignment.start : WrapAlignment.center,
+                            children: data.metrics.isNotEmpty
+                                ? data.metrics.map((m) => _buildMetricItem(m.value, m.label)).toList()
+                                : [
+                                    _buildMetricItem("3+", "Years\nExperience"),
+                                    _buildMetricItem("10+", "Apps\nDeployed"),
+                                    _buildMetricItem("100%", "Client\nSatisfaction"),
+                                  ],
+                          ).animate().fade(delay: 800.ms).slideY(begin: 0.2),
                         ],
                       ),
                     ),
-                    Container(
-                      width: 350,
-                      height: 350,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.deepPurpleAccent.withOpacity(0.3), blurRadius: 40, spreadRadius: 10)],
-                        border: Border.all(color: Colors.deepPurpleAccent, width: 4),
-                        image: DecorationImage(
-                          image: data.profileImage.isNotEmpty
-                              ? NetworkImage(data.profileImage) as ImageProvider
-                              : const AssetImage('assets/images/my_info.jpeg'),
-                          fit: BoxFit.cover,
-                        ),
+                    SizedBox(
+                      width: 400,
+                      height: 400,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 320,
+                            height: 320,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: Colors.deepPurpleAccent.withOpacity(0.4), blurRadius: 60, spreadRadius: 10)],
+                              border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.5), width: 2),
+                              image: data.profileImage.isNotEmpty ? DecorationImage(
+                                image: NetworkImage(data.profileImage),
+                                fit: BoxFit.cover,
+                              ) : null,
+                            ),
+                            child: data.profileImage.isEmpty
+                                ? const FlutterLogo(size: 120)
+                                : null,
+                          ),
+                          Positioned(
+                            top: 40,
+                            left: 0,
+                            child: _buildGlassBadge("Flutter SDE"),
+                          ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: -5, end: 5, duration: 2.5.seconds),
+                          Positioned(
+                            bottom: 60,
+                            right: 0,
+                            child: _buildGlassBadge("Available for Hire", isAccent: true),
+                          ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: 5, end: -5, duration: 3.seconds),
+                        ],
                       ),
                     ).animate(onPlay: (controller) => controller.repeat(reverse: true)).moveY(begin: -10, end: 10, duration: 2.seconds),
                   ],
@@ -205,14 +265,14 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 key: _aboutKey,
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: isDesktop ? 120 : 24, vertical: 60),
-                color: const Color(0xFF15151A),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                 child: Column(
                   children: [
                     _sectionTitle('About Me'),
                     const SizedBox(height: 40),
                     Text(
                       data.bio,
-                      style: const TextStyle(fontSize: 18, height: 1.8, color: Colors.white70),
+                      style: TextStyle(fontSize: 18, height: 1.8, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -248,7 +308,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   key: _experienceKey,
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(horizontal: isDesktop ? 120 : 24, vertical: 60),
-                  color: const Color(0xFF15151A),
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                   child: Column(
                     children: [
                       _sectionTitle('Experience'),
@@ -277,7 +337,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 key: _projectsKey,
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: isDesktop ? 80 : 24, vertical: 60),
-                color: const Color(0xFF15151A),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                 child: Column(
                   children: [
                     _sectionTitle('Projects'),
@@ -305,14 +365,14 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 key: _contactKey,
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: isDesktop ? 120 : 24, vertical: 80),
-                color: const Color(0xFF15151A),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                 child: Column(
                   children: [
                     _sectionTitle("Let's Connect"),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       "I'm always open to discussing new projects, creative ideas or opportunities.",
-                      style: TextStyle(fontSize: 18, color: Colors.white70),
+                      style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
@@ -327,7 +387,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                       ],
                     ),
                     const SizedBox(height: 40),
-                    const Text("© 2026. Built with Flutter Web.", style: TextStyle(color: Colors.white38)),
+                    Text("© 2026. Built with Flutter Web.", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38))),
                   ],
                 ),
               ),
@@ -345,13 +405,26 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                color: Colors.black.withOpacity(0.4),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      "FlutterDev",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5),
+                    Row(
+                      children: [
+                        data.profileImage.isNotEmpty
+                            ? CircleAvatar(backgroundImage: NetworkImage(data.profileImage), radius: 18)
+                            : const FlutterLogo(size: 32),
+                        const SizedBox(width: 12),
+                        Text(
+                          data.name.isEmpty ? "FlutterDev" : data.name,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
                     ),
                     if (isDesktop)
                       Row(
@@ -373,16 +446,30 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                                   );
                                 }
                               },
-                              child: const Text("Download CV", style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600)),
+                              child: Text("Download CV", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
                           ),
                           _navItem("Contact", _contactKey),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: IconButton(
+                              icon: Icon(
+                                Theme.of(context).brightness == Brightness.dark ? Icons.light_mode : Icons.dark_mode,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              onPressed: () {
+                                final current = ref.read(themeModeProvider);
+                                ref.read(themeModeProvider.notifier).state =
+                                    current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+                              },
+                            ),
+                          ),
                         ],
                       )
                     else
                       Builder(
                         builder: (ctx) => IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                          icon: Icon(Icons.menu, color: Theme.of(context).colorScheme.onSurface, size: 28),
                           onPressed: () => Scaffold.of(ctx).openEndDrawer(),
                         ),
                       ),
@@ -399,7 +486,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
+      style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 1.2),
     ).animate().fade(duration: 600.ms).slideY(begin: 0.2);
   }
 
@@ -410,7 +497,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         onPressed: () => _scrollTo(key),
         child: Text(
           title,
-          style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -423,11 +510,11 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E24),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.5)),
         ),
-        child: FaIcon(icon, color: Colors.white, size: 28),
+        child: FaIcon(icon, color: Theme.of(context).colorScheme.onSurface, size: 28),
       ),
     );
   }
@@ -471,6 +558,48 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
       ],
     );
   }
+
+  Widget _buildGlassBadge(String text, {bool isAccent = false}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isAccent ? Colors.deepPurpleAccent.withOpacity(0.2) : Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isAccent ? Colors.deepPurpleAccent.withOpacity(0.5) : Colors.white.withOpacity(0.2)),
+            boxShadow: [
+              if (isAccent) BoxShadow(color: Colors.deepPurpleAccent.withOpacity(0.3), blurRadius: 20)
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isAccent) Icon(Icons.check_circle, color: Colors.greenAccent, size: 16),
+              if (isAccent) const SizedBox(width: 8),
+              Text(
+                text,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricItem(String value, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent)),
+        const SizedBox(width: 12),
+        Text(label, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.2)),
+      ],
+    );
+  }
 }
 
 class _ExperienceCard extends StatelessWidget {
@@ -492,7 +621,7 @@ class _ExperienceCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withOpacity(0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -510,7 +639,7 @@ class _ExperienceCard extends StatelessWidget {
                         color: Colors.deepPurpleAccent.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 28),
+                      child: Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 28),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -519,12 +648,12 @@ class _ExperienceCard extends StatelessWidget {
                         children: [
                           Text(
                             exp.role,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             exp.company,
-                            style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -541,13 +670,13 @@ class _ExperienceCard extends StatelessWidget {
                   ),
                   child: Text(
                     exp.duration,
-                    style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   exp.description,
-                  style: const TextStyle(fontSize: 15, color: Colors.white70, height: 1.6),
+                  style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.6),
                 ),
                 if (exp.imagePath.isNotEmpty) ...[
                   const SizedBox(height: 16),
@@ -573,7 +702,7 @@ class _ExperienceCard extends StatelessWidget {
                     color: Colors.deepPurpleAccent.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
+                  child: Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
@@ -590,12 +719,12 @@ class _ExperienceCard extends StatelessWidget {
                               children: [
                                 Text(
                                   exp.role,
-                                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   exp.company,
-                                  style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -610,7 +739,7 @@ class _ExperienceCard extends StatelessWidget {
                             ),
                             child: Text(
                               exp.duration,
-                              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
                             ),
                           ),
                         ],
@@ -618,7 +747,7 @@ class _ExperienceCard extends StatelessWidget {
                       const SizedBox(height: 20),
                       Text(
                         exp.description,
-                        style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.8),
+                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.8),
                       ),
                       if (exp.imagePath.isNotEmpty) ...[
                         const SizedBox(height: 20),
@@ -661,7 +790,7 @@ class _EducationCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withOpacity(0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -689,8 +818,8 @@ class _EducationCard extends StatelessWidget {
                           errorBuilder: (_, __, ___) => Container(
                             width: 60,
                             height: 60,
-                            color: Colors.white10,
-                            child: const Icon(Icons.school_outlined, size: 28, color: Colors.white54),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
+                            child: Icon(Icons.school_outlined, size: 28, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                           ),
                         ),
                       ),
@@ -702,12 +831,12 @@ class _EducationCard extends StatelessWidget {
                         children: [
                           Text(
                             edu.institution,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             edu.degree,
-                            style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -724,7 +853,7 @@ class _EducationCard extends StatelessWidget {
                   ),
                   child: Text(
                     edu.year,
-                    style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
                   ),
                 ),
               ],
@@ -748,8 +877,8 @@ class _EducationCard extends StatelessWidget {
                       errorBuilder: (_, __, ___) => Container(
                         width: 80,
                         height: 80,
-                        color: Colors.white10,
-                        child: const Icon(Icons.school_outlined, size: 40, color: Colors.white54),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
+                        child: Icon(Icons.school_outlined, size: 40, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                       ),
                     ),
                   ),
@@ -766,12 +895,12 @@ class _EducationCard extends StatelessWidget {
                           children: [
                             Text(
                               edu.institution,
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               edu.degree,
-                              style: const TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+                              style: TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -786,7 +915,7 @@ class _EducationCard extends StatelessWidget {
                         ),
                         child: Text(
                           edu.year,
-                          style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 14),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                       ),
                     ],
@@ -816,29 +945,29 @@ class _ProjectCardState extends State<_ProjectCard> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.folder_open, size: 40, color: Colors.deepPurpleAccent),
+          Icon(Icons.folder_open, size: 40, color: Colors.deepPurpleAccent),
           const SizedBox(height: 20),
           Text(
             widget.project.title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
           if (widget.project.role.isNotEmpty || widget.project.companyName.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               [if (widget.project.role.isNotEmpty) widget.project.role, if (widget.project.companyName.isNotEmpty) widget.project.companyName].join(' at '),
-              style: const TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
             ),
           ],
           const SizedBox(height: 16),
           LayoutBuilder(builder: (context, size) {
-            final span = TextSpan(text: widget.project.description, style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5));
+            final span = TextSpan(text: widget.project.description, style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5));
             final tp = TextPainter(text: span, maxLines: 7, textDirection: TextDirection.ltr);
             tp.layout(maxWidth: size.maxWidth);
             
@@ -851,7 +980,7 @@ class _ProjectCardState extends State<_ProjectCard> {
                   children: [
                     Text(
                       widget.project.description,
-                      style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
+                      style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
                       maxLines: _isExpanded ? null : 7,
                       overflow: _isExpanded ? null : TextOverflow.ellipsis,
                     ),
@@ -860,7 +989,7 @@ class _ProjectCardState extends State<_ProjectCard> {
                       onTap: () => setState(() => _isExpanded = !_isExpanded),
                       child: Text(
                         _isExpanded ? "View Less" : "View More",
-                        style: const TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -869,7 +998,7 @@ class _ProjectCardState extends State<_ProjectCard> {
             } else {
               return Text(
                 widget.project.description,
-                style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.5),
+                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
               );
             }
           }),
@@ -969,12 +1098,12 @@ class _SkillMarqueeState extends State<_SkillMarquee> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E24),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.3)),
                 ),
                 child: Center(
-                  child: Text(skill, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 16)),
+                  child: Text(skill, style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface, fontSize: 16)),
                 ),
               ),
             );
@@ -1044,8 +1173,8 @@ class _AchievementMarqueeState extends State<_AchievementMarquee> {
                   errorBuilder: (context, error, stackTrace) => Container(
                     width: 400,
                     height: 300,
-                    color: const Color(0xFF1E1E24),
-                    child: const Center(child: Icon(Icons.error, color: Colors.white54)),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Center(child: Icon(Icons.error, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
                   ),
                 ),
               ),

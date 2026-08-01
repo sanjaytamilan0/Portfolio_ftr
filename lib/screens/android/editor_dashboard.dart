@@ -45,6 +45,8 @@ class _EditorForm extends ConsumerStatefulWidget {
 class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _nameController;
   late TextEditingController _titleController;
+  late TextEditingController _typewriterController;
+  late TextEditingController _metricsController;
   late TextEditingController _bioController;
   late TextEditingController _profileImageController;
   late TextEditingController _skillController;
@@ -64,6 +66,8 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     super.initState();
     _nameController = TextEditingController(text: widget.data.name);
     _titleController = TextEditingController(text: widget.data.title);
+    _typewriterController = TextEditingController(text: widget.data.typewriterTexts.join(', '));
+    _metricsController = TextEditingController(text: widget.data.metrics.map((m) => '${m.value}|${m.label.replaceAll('\n', '\\n')}').join('\n'));
     _bioController = TextEditingController(text: widget.data.bio);
     _profileImageController = TextEditingController(text: widget.data.profileImage);
     _skillController = TextEditingController();
@@ -81,6 +85,8 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   void dispose() {
     _nameController.dispose();
     _titleController.dispose();
+    _typewriterController.dispose();
+    _metricsController.dispose();
     _bioController.dispose();
     _profileImageController.dispose();
     _skillController.dispose();
@@ -99,6 +105,14 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     final newData = widget.data.copyWith(
       name: _nameController.text,
       title: _titleController.text,
+      typewriterTexts: _typewriterController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+      metrics: _metricsController.text.split('\n').map((line) {
+        final parts = line.split('|');
+        if (parts.length == 2) {
+          return MetricData(value: parts[0].trim(), label: parts[1].replaceAll('\\n', '\n').trim());
+        }
+        return null;
+      }).whereType<MetricData>().toList(),
       bio: _bioController.text,
       skills: _skills,
       education: _education,
@@ -279,6 +293,20 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
               controller: _titleController,
               label: 'Title',
               icon: Icons.work,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _typewriterController,
+              label: 'Typewriter Titles (comma separated)',
+              icon: Icons.text_fields,
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _metricsController,
+              label: 'Metrics (value|label per line)',
+              icon: Icons.bar_chart,
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
             _buildTextField(

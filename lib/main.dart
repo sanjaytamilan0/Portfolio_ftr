@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,17 +24,29 @@ void main() async {
   );
 }
 
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    
     return MaterialApp(
       title: 'sanjay flutter SDE',
+      themeMode: themeMode,
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.deepPurple,
+        brightness: Brightness.light,
+        colorSchemeSeed: Colors.deepPurple,
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.deepPurpleAccent,
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFF121212),
       ),
       home: kIsWeb ? const PortfolioScreen() : const EditorEntry(),
     );

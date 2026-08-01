@@ -3,6 +3,8 @@ class PortfolioData {
   final String title;
   final String bio;
   final List<String> skills;
+  final List<String> typewriterTexts;
+  final List<MetricData> metrics;
   final List<CollegeDetails> education;
   final List<Experience> experience;
   final List<Project> projects;
@@ -15,6 +17,8 @@ class PortfolioData {
     this.title = 'Mobile & Web Developer',
     required this.bio,
     required this.skills,
+    required this.typewriterTexts,
+    required this.metrics,
     required this.education,
     required this.experience,
     required this.projects,
@@ -29,6 +33,11 @@ class PortfolioData {
       title: json['title'] ?? 'Mobile & Web Developer',
       bio: json['bio'] ?? '',
       skills: json['skills'] != null ? List<String>.from(json['skills']) : [],
+      typewriterTexts: json['typewriterTexts'] != null ? List<String>.from(json['typewriterTexts']) : [],
+      metrics: (json['metrics'] as List<dynamic>?)
+              ?.map((e) => MetricData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       education: (json['education'] as List<dynamic>?)
               ?.map((e) => CollegeDetails.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -53,6 +62,8 @@ class PortfolioData {
       'title': title,
       'bio': bio,
       'skills': skills,
+      'typewriterTexts': typewriterTexts,
+      'metrics': metrics.map((e) => e.toJson()).toList(),
       'education': education.map((e) => e.toJson()).toList(),
       'experience': experience.map((e) => e.toJson()).toList(),
       'projects': projects.map((e) => e.toJson()).toList(),
@@ -67,6 +78,8 @@ class PortfolioData {
     String? title,
     String? bio,
     List<String>? skills,
+    List<String>? typewriterTexts,
+    List<MetricData>? metrics,
     List<CollegeDetails>? education,
     List<Experience>? experience,
     List<Project>? projects,
@@ -79,6 +92,8 @@ class PortfolioData {
       title: title ?? this.title,
       bio: bio ?? this.bio,
       skills: skills ?? this.skills,
+      typewriterTexts: typewriterTexts ?? this.typewriterTexts,
+      metrics: metrics ?? this.metrics,
       education: education ?? this.education,
       experience: experience ?? this.experience,
       projects: projects ?? this.projects,
@@ -281,6 +296,40 @@ class SocialLinks {
       github: github ?? this.github,
       linkedin: linkedin ?? this.linkedin,
       email: email ?? this.email,
+    );
+  }
+}
+
+class MetricData {
+  final String value;
+  final String label;
+
+  MetricData({
+    required this.value,
+    required this.label,
+  });
+
+  factory MetricData.fromJson(Map<String, dynamic> json) {
+    return MetricData(
+      value: json['value'] ?? '',
+      label: json['label'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'value': value,
+      'label': label,
+    };
+  }
+
+  MetricData copyWith({
+    String? value,
+    String? label,
+  }) {
+    return MetricData(
+      value: value ?? this.value,
+      label: label ?? this.label,
     );
   }
 }
