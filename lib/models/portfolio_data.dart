@@ -3,14 +3,20 @@ class PortfolioData {
   final String bio;
   final List<String> skills;
   final List<CollegeDetails> education;
+  final List<Experience> experience;
   final List<Project> projects;
+  final SocialLinks socialLinks;
+  final String resumeLink;
 
   PortfolioData({
     required this.name,
     required this.bio,
     required this.skills,
     required this.education,
+    required this.experience,
     required this.projects,
+    required this.socialLinks,
+    required this.resumeLink,
   });
 
   factory PortfolioData.fromJson(Map<String, dynamic> json) {
@@ -22,10 +28,16 @@ class PortfolioData {
               ?.map((e) => CollegeDetails.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      experience: (json['experience'] as List<dynamic>?)
+              ?.map((e) => Experience.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       projects: (json['projects'] as List<dynamic>?)
               ?.map((e) => Project.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      socialLinks: json['socialLinks'] != null ? SocialLinks.fromJson(json['socialLinks']) : SocialLinks(github: '', linkedin: '', email: ''),
+      resumeLink: json['resumeLink'] ?? '',
     );
   }
 
@@ -35,7 +47,10 @@ class PortfolioData {
       'bio': bio,
       'skills': skills,
       'education': education.map((e) => e.toJson()).toList(),
+      'experience': experience.map((e) => e.toJson()).toList(),
       'projects': projects.map((e) => e.toJson()).toList(),
+      'socialLinks': socialLinks.toJson(),
+      'resumeLink': resumeLink,
     };
   }
 
@@ -44,14 +59,20 @@ class PortfolioData {
     String? bio,
     List<String>? skills,
     List<CollegeDetails>? education,
+    List<Experience>? experience,
     List<Project>? projects,
+    SocialLinks? socialLinks,
+    String? resumeLink,
   }) {
     return PortfolioData(
       name: name ?? this.name,
       bio: bio ?? this.bio,
       skills: skills ?? this.skills,
       education: education ?? this.education,
+      experience: experience ?? this.experience,
       projects: projects ?? this.projects,
+      socialLinks: socialLinks ?? this.socialLinks,
+      resumeLink: resumeLink ?? this.resumeLink,
     );
   }
 }
@@ -138,6 +159,92 @@ class CollegeDetails {
       degree: degree ?? this.degree,
       year: year ?? this.year,
       imagePath: imagePath ?? this.imagePath,
+    );
+  }
+}
+
+class Experience {
+  final String role;
+  final String company;
+  final String duration;
+  final String description;
+
+  Experience({
+    required this.role,
+    required this.company,
+    required this.duration,
+    required this.description,
+  });
+
+  factory Experience.fromJson(Map<String, dynamic> json) {
+    return Experience(
+      role: json['role'] ?? '',
+      company: json['company'] ?? '',
+      duration: json['duration'] ?? '',
+      description: json['description'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'role': role,
+      'company': company,
+      'duration': duration,
+      'description': description,
+    };
+  }
+
+  Experience copyWith({
+    String? role,
+    String? company,
+    String? duration,
+    String? description,
+  }) {
+    return Experience(
+      role: role ?? this.role,
+      company: company ?? this.company,
+      duration: duration ?? this.duration,
+      description: description ?? this.description,
+    );
+  }
+}
+
+class SocialLinks {
+  final String github;
+  final String linkedin;
+  final String email;
+
+  SocialLinks({
+    required this.github,
+    required this.linkedin,
+    required this.email,
+  });
+
+  factory SocialLinks.fromJson(Map<String, dynamic> json) {
+    return SocialLinks(
+      github: json['github'] ?? '',
+      linkedin: json['linkedin'] ?? '',
+      email: json['email'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'github': github,
+      'linkedin': linkedin,
+      'email': email,
+    };
+  }
+
+  SocialLinks copyWith({
+    String? github,
+    String? linkedin,
+    String? email,
+  }) {
+    return SocialLinks(
+      github: github ?? this.github,
+      linkedin: linkedin ?? this.linkedin,
+      email: email ?? this.email,
     );
   }
 }

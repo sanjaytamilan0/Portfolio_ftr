@@ -46,8 +46,13 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   late TextEditingController _bioController;
   late TextEditingController _skillController;
   late List<CollegeDetails> _education;
+  late List<Experience> _experience;
   late List<String> _skills;
   late List<Project> _projects;
+  late TextEditingController _githubController;
+  late TextEditingController _linkedinController;
+  late TextEditingController _emailController;
+  late TextEditingController _resumeLinkController;
   bool _isSaving = false;
 
   @override
@@ -57,8 +62,13 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _bioController = TextEditingController(text: widget.data.bio);
     _skillController = TextEditingController();
     _education = List.from(widget.data.education);
+    _experience = List.from(widget.data.experience);
     _skills = List.from(widget.data.skills);
     _projects = List.from(widget.data.projects);
+    _githubController = TextEditingController(text: widget.data.socialLinks.github);
+    _linkedinController = TextEditingController(text: widget.data.socialLinks.linkedin);
+    _emailController = TextEditingController(text: widget.data.socialLinks.email);
+    _resumeLinkController = TextEditingController(text: widget.data.resumeLink);
   }
 
   @override
@@ -66,6 +76,10 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController.dispose();
     _bioController.dispose();
     _skillController.dispose();
+    _githubController.dispose();
+    _linkedinController.dispose();
+    _emailController.dispose();
+    _resumeLinkController.dispose();
     super.dispose();
   }
 
@@ -79,7 +93,14 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
       bio: _bioController.text,
       skills: _skills,
       education: _education,
+      experience: _experience,
       projects: _projects,
+      socialLinks: SocialLinks(
+        github: _githubController.text,
+        linkedin: _linkedinController.text,
+        email: _emailController.text,
+      ),
+      resumeLink: _resumeLinkController.text,
     );
 
     try {
@@ -118,6 +139,18 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   void _removeEducation(int index) {
     setState(() {
       _education.removeAt(index);
+    });
+  }
+
+  void _addExperience() {
+    setState(() {
+      _experience.add(Experience(role: 'New Role', company: '', duration: '', description: ''));
+    });
+  }
+
+  void _removeExperience(int index) {
+    setState(() {
+      _experience.removeAt(index);
     });
   }
 
@@ -293,6 +326,89 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const Text('Experience', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                ElevatedButton.icon(
+                  onPressed: _addExperience,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Experience'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ..._experience.asMap().entries.map((entry) {
+              final index = entry.key;
+              final exp = entry.value;
+              return Card(
+                color: const Color(0xFF1E1E1E),
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextFormField(
+                              initialValue: exp.role,
+                              label: 'Role / Job Title',
+                              icon: Icons.work,
+                              onChanged: (val) {
+                                _experience[index] = exp.copyWith(role: val);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => _removeExperience(index),
+                            tooltip: 'Delete Experience',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: exp.company,
+                        label: 'Company',
+                        icon: Icons.business,
+                        onChanged: (val) {
+                          _experience[index] = exp.copyWith(company: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: exp.duration,
+                        label: 'Duration (e.g. Jan 2023 - Present)',
+                        icon: Icons.calendar_today,
+                        onChanged: (val) {
+                          _experience[index] = exp.copyWith(duration: val);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFormField(
+                        initialValue: exp.description,
+                        label: 'Description',
+                        icon: Icons.notes,
+                        maxLines: 3,
+                        onChanged: (val) {
+                          _experience[index] = exp.copyWith(description: val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 const Text('Projects', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                 ElevatedButton.icon(
                   onPressed: _addProject,
@@ -363,6 +479,32 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
                 ),
               );
             }),
+            const SizedBox(height: 40),
+            const Text('Social Links & Resume', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _githubController,
+              label: 'GitHub URL',
+              icon: Icons.code,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _linkedinController,
+              label: 'LinkedIn URL',
+              icon: Icons.link,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _emailController,
+              label: 'Email',
+              icon: Icons.email,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _resumeLinkController,
+              label: 'Resume URL (e.g. Google Drive Link or assets/resume.pdf)',
+              icon: Icons.picture_as_pdf,
+            ),
             const SizedBox(height: 40),
             SizedBox(
               height: 56,

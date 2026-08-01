@@ -23,6 +23,26 @@
       "imagePath": "assets/images/my_collage.jpg"
     }
   ],
+  "experience": [
+    {
+      "role": "Mobile App Developer",
+      "company": "Webstromers Private Ltd.",
+      "duration": "Jan 2025 - Present",
+      "description": "Currently developing and maintaining Android mobile applications using Flutter. Key responsibilities include REST API integration, implementing in-app webview, HSL video player, and YouTube player. Also proficient in integrating Razorpay, Google Maps, push notifications, and deep linking. Utilized Riverpod and GetX for efficient state management."
+    },
+    {
+      "role": "Flutter Developer",
+      "company": "Ascending Software",
+      "duration": "Dec 2023 - Dec 2024",
+      "description": "Developed cross-platform mobile and web applications using Flutter. Gained hands-on experience in API integration, implementing third-party payment gateways like Razorpay, basic routing, and integrating Google Maps. Utilized state management solutions including Riverpod, Cubit, and GetX."
+    }
+  ],
+  "socialLinks": {
+    "github": "https://github.com/sanjaytamilan0",
+    "linkedin": "https://www.linkedin.com/in/sanjay-k-86735a277",
+    "email": "sanjaytamilan0@gmail.com"
+  },
+  "resumeLink": "",
   "projects": [
     {
       "title": "Snapper",
