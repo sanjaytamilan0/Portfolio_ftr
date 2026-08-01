@@ -46,8 +46,12 @@ class _PortfolioContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth > 600 ? 40 : 16, 
+        vertical: screenWidth > 600 ? 80 : 40,
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
@@ -88,14 +92,26 @@ class _PortfolioContent extends StatelessWidget {
                 const SizedBox(height: 40),
               ],
               
-              const Text(
-                'Projects',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-              ).animate().fade(delay: 700.ms, duration: 600.ms),
+              Center(
+                child: const Text(
+                  'Projects',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                ).animate().fade(delay: 700.ms, duration: 600.ms),
+              ),
               
               const SizedBox(height: 30),
               
               _buildProjectRows(data.projects).animate().fade(delay: 800.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95)),
+              
+              const SizedBox(height: 60),
+              Center(
+                child: const Text(
+                  'Achievements',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                ).animate().fade(delay: 900.ms, duration: 600.ms),
+              ),
+              const SizedBox(height: 30),
+              _AchievementMarquee().animate().fade(delay: 1000.ms, duration: 600.ms),
             ],
           ),
         ),
@@ -144,8 +160,9 @@ class _ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Container(
-      width: 400,
+      width: screenWidth > 450 ? 400 : screenWidth * 0.85,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
@@ -252,6 +269,78 @@ class _SkillMarqueeState extends State<_SkillMarquee> {
                 labelStyle: const TextStyle(color: Colors.white),
                 side: BorderSide(color: Colors.white.withOpacity(0.2)),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _AchievementMarquee extends StatefulWidget {
+  @override
+  State<_AchievementMarquee> createState() => _AchievementMarqueeState();
+}
+
+class _AchievementMarqueeState extends State<_AchievementMarquee> {
+  final ScrollController _controller = ScrollController();
+  bool _isHovering = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startScrolling();
+  }
+
+  void _startScrolling() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    while (mounted) {
+      if (_controller.hasClients && !_isHovering) {
+        await _controller.animateTo(
+          _controller.offset + 50.0,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.linear,
+        );
+      } else {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: SizedBox(
+        height: 250,
+        child: ListView.builder(
+          controller: _controller,
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  'https://raw.githubusercontent.com/sanjaytamilan0/resume-web-view/main/assets/assets/images/achivement.png',
+                  height: 250,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 300,
+                    height: 250,
+                    color: Colors.grey[800],
+                    child: const Center(child: Icon(Icons.error, color: Colors.white54)),
+                  ),
+                ),
               ),
             );
           },
