@@ -341,7 +341,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
     );
   }
 
-  Widget _socialButton(IconData icon, String url) {
+  Widget _socialButton(dynamic icon, String url) {
     return InkWell(
       onTap: () => _launchURL(url),
       borderRadius: BorderRadius.circular(50),
