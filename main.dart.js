@@ -76511,13 +76511,15 @@ $S:506}
 A.ajT.prototype={
 $2(b2,b3){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e=null,d="Download CV",c="Experience",b="Projects",a=b3.b,a0=a>800,a1=this.a,a2=a1.x,a3=a0?80:24,a4=a0?500:a*0.9,a5=a0?B.Z:B.a1,a6=A.Al(A.nI(A.iC(A.bq("Hello, I am",e,e,A.bf(e,e,B.w,e,e,e,e,e,e,e,e,24,e,e,B.aY,e,e,!0,e,e,e,e,e,e,e,e),e),e),e,A.cf(5e5,0,0)),0.2),a7=this.b,a8=a7.a,a9=a8.length===0,b0=a9?"Your Name":a8,b1=A.bf(e,e,A.R(b2).ax.k3,e,e,e,e,e,e,e,e,64,e,e,B.a7,e,1.1,!0,e,e,e,e,e,e,e,e)
 b0=A.Al(A.nI(A.iC(A.bq(b0,e,e,b1,a0?B.bf:B.bO),e),A.cf(2e5,0,0),e),0.2)
-b1=A.bf(e,e,A.R(b2).ax.k3.bD(0.7),e,e,e,e,e,e,e,e,28,e,e,B.T,e,e,!0,e,e,e,e,e,e,e,e)
-s=a0?B.bf:B.bO
-r=a7.e
-if(r.length!==0){q=A.Z(r).h("a1<1,me>")
-r=A.W(new A.a1(r,new A.ajE(),q),q.h("ab.E"))}else{r=a7.b
-r=A.c([A.MD(r.length===0?"Mobile & Web Developer":r),A.MD("Building beautiful mobile experiences"),A.MD("Architecting scalable Flutter apps"),A.MD("Turning ideas into reality")],t.u6)}s=A.Al(A.nI(A.iC(A.eU(A.Hi(new A.vp(r,!0,e),e,B.bP,!0,b1,s,e,B.av),40,e),e),A.cf(4e5,0,0),e),0.2)
-b1=a0?B.bQ:B.ea
+b1=a0?40:80
+s=a0?28:20
+s=A.bf(e,e,A.R(b2).ax.k3.bD(0.7),e,e,e,e,e,e,e,e,s,e,e,B.T,e,e,!0,e,e,e,e,e,e,e,e)
+r=a0?B.bf:B.bO
+q=a7.e
+if(q.length!==0){p=A.Z(q).h("a1<1,me>")
+q=A.W(new A.a1(q,new A.ajE(),p),p.h("ab.E"))}else{q=a7.b
+q=A.c([A.MD(q.length===0?"Mobile & Web Developer":q),A.MD("Building beautiful mobile experiences"),A.MD("Architecting scalable Flutter apps"),A.MD("Turning ideas into reality")],t.u6)}b1=A.Al(A.nI(A.iC(A.eU(A.Hi(new A.vp(q,!0,e),e,B.bP,!0,s,r,e,B.av),b1,e),e),A.cf(4e5,0,0),e),0.2)
+s=a0?B.bQ:B.ea
 r=t.E
 q=A.c([new A.HH(new A.ajF(a1),e,e,e,A.aED(e,e,B.w,e,e,e,e,e,e,e,e,e,B.lo,e,new A.cO(A.dd(30),B.r),e,e,e,e,e),e,e,!1,e,!0,e,A.bq("Hire Me",e,e,A.bf(e,e,A.R(b2).ax.k3,e,e,e,e,e,e,e,e,18,e,e,B.a7,e,e,!0,e,e,e,e,e,e,e,e),e),e),new A.JL(new A.ajG(a1,a7,b2),e,e,e,A.aGE(e,e,e,e,e,e,e,e,e,e,e,e,B.lo,e,new A.cO(A.dd(30),B.r),new A.bu(B.w,2,B.C,-1),e,e,e,e),e,e,!1,e,!0,e,A.bq(d,e,e,A.bf(e,e,A.R(b2).ax.k3,e,e,e,e,e,e,e,e,18,e,e,B.a7,e,e,!0,e,e,e,e,e,e,e,e),e),e)],r)
 p=a7.y
@@ -76530,12 +76532,12 @@ if(l)q.push(A.In(e,e,A.apN(B.lw,A.R(b2).ax.k3,32),e,e,new A.ajM(a1,a7),B.lq,e,e)
 k=t.dk
 k=A.kZ(new A.aw(q,new A.ajN(),k),k.h("p.E"),t.l7)
 q=A.W(k,A.i(k).h("p.E"))
-b1=A.Al(A.nI(A.iC(A.N7(b1,q,B.eb,16,16),e),A.cf(6e5,0,0),e),0.2)
+s=A.Al(A.nI(A.iC(A.N7(s,q,B.eb,16,16),e),A.cf(6e5,0,0),e),0.2)
 q=a0?B.bQ:B.ea
 k=a7.f
 if(k.length!==0){j=A.Z(k).h("a1<1,h>")
 k=A.W(new A.a1(k,new A.ajO(a1),j),j.h("ab.E"))}else k=A.c([a1.ur("3+","Years\nExperience"),a1.ur("10+","Apps\nDeployed"),a1.ur("100%","Client\nSatisfaction")],r)
-a4=A.eU(A.dW(A.c([a6,B.LB,b0,B.cQ,s,B.LE,b1,B.LF,A.Al(A.nI(A.iC(A.N7(q,k,B.eb,16,32),e),A.cf(8e5,0,0),e),0.2)],r),a5),e,a4)
+a4=A.eU(A.dW(A.c([a6,B.LB,b0,B.cQ,b1,B.LE,s,B.LF,A.Al(A.nI(A.iC(A.N7(q,k,B.eb,16,32),e),A.cf(8e5,0,0),e),0.2)],r),a5),e,a4)
 a5=A.c([new A.ds(10,B.cm,A.ak(102,B.w.u()>>>16&255,B.w.u()>>>8&255,B.w.u()&255),B.j,60)],t.sq)
 k=A.iE(A.ak(B.d.ap(127.5),B.w.u()>>>16&255,B.w.u()>>>8&255,B.w.u()&255),2)
 a6=a7.Q
