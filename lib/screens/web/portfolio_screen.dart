@@ -682,6 +682,12 @@ class _AchievementMarqueeState extends State<_AchievementMarquee> {
   final ScrollController _controller = ScrollController();
   bool _isHovering = false;
 
+  final List<String> _achievementImages = [
+    'assets/images/achivement.png',
+    'assets/images/problem_solving.jpg',
+    'assets/images/sde_certificate.jpg',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -721,12 +727,13 @@ class _AchievementMarqueeState extends State<_AchievementMarquee> {
           scrollDirection: Axis.horizontal,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
+            final imagePath = _achievementImages[index % _achievementImages.length];
             return Padding(
               padding: const EdgeInsets.only(right: 30),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  'https://raw.githubusercontent.com/sanjaytamilan0/resume-web-view/main/assets/assets/images/achivement.png',
+                child: Image.asset(
+                  imagePath,
                   height: 300,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
