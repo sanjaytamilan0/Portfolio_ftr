@@ -149,9 +149,9 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                           ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
                           const SizedBox(height: 16),
                           SizedBox(
-                            height: 40,
+                            height: isDesktop ? 40 : 80,
                             child: DefaultTextStyle(
-                              style: TextStyle(fontSize: 28, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w500),
+                              style: TextStyle(fontSize: isDesktop ? 28 : 20, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w500),
                               textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                               child: AnimatedTextKit(
                                 repeatForever: true,
