@@ -1,4 +1,6 @@
+import textwrap
 
+code = """
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -60,7 +62,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     _nameController = TextEditingController(text: widget.data.name)..addListener(_onFormChanged);
     _titleController = TextEditingController(text: widget.data.title)..addListener(_onFormChanged);
     _typewriterController = TextEditingController(text: widget.data.typewriterTexts.join(', '))..addListener(_onFormChanged);
-    _metricsController = TextEditingController(text: widget.data.metrics.map((m) => '${m.value}|${m.label.replaceAll('\n', '\\n')}').join('\n'))..addListener(_onFormChanged);
+    _metricsController = TextEditingController(text: widget.data.metrics.map((m) => '${m.value}|${m.label.replaceAll('\\n', '\\\\n')}').join('\\n'))..addListener(_onFormChanged);
     _bioController = TextEditingController(text: widget.data.bio)..addListener(_onFormChanged);
     _profileImageController = TextEditingController(text: widget.data.profileImage)..addListener(_onFormChanged);
     _skillController = TextEditingController();
@@ -95,9 +97,9 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
       name: _nameController.text,
       title: _titleController.text,
       typewriterTexts: _typewriterController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-      metrics: _metricsController.text.split('\n').map((line) {
+      metrics: _metricsController.text.split('\\n').map((line) {
         final parts = line.split('|');
-        if (parts.length == 2) return MetricData(value: parts[0].trim(), label: parts[1].replaceAll('\\n', '\n').trim());
+        if (parts.length == 2) return MetricData(value: parts[0].trim(), label: parts[1].replaceAll('\\\\n', '\\n').trim());
         return null;
       }).whereType<MetricData>().toList(),
       bio: _bioController.text,
@@ -472,7 +474,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
           children: [
             const Icon(Icons.drag_handle, color: Colors.grey),
             const SizedBox(width: 8),
-            Expanded(child: Text(exp.role.isEmpty ? 'New Experience' : exp.role)),
+            Text(exp.role.isEmpty ? 'New Experience' : exp.role),
           ],
         ),
         childrenPadding: const EdgeInsets.all(16),
@@ -512,7 +514,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
           children: [
             const Icon(Icons.drag_handle, color: Colors.grey),
             const SizedBox(width: 8),
-            Expanded(child: Text(edu.institution.isEmpty ? 'New Education' : edu.institution)),
+            Text(edu.institution.isEmpty ? 'New Education' : edu.institution),
           ],
         ),
         childrenPadding: const EdgeInsets.all(16),
@@ -543,7 +545,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
           children: [
             const Icon(Icons.drag_handle, color: Colors.grey),
             const SizedBox(width: 8),
-            Expanded(child: Text(project.title.isEmpty ? 'New Project' : project.title)),
+            Text(project.title.isEmpty ? 'New Project' : project.title),
           ],
         ),
         childrenPadding: const EdgeInsets.all(16),
@@ -576,3 +578,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     );
   }
 }
+"""
+
+with open('lib/screens/android/editor_dashboard.dart', 'w') as f:
+    f.write(code)

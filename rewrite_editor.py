@@ -1,11 +1,11 @@
+import textwrap
 
+code = """
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/services.dart';
 import '../../providers/github_provider.dart';
 import '../../models/portfolio_data.dart';
-import '../web/portfolio_screen.dart';
 
 class EditorDashboard extends ConsumerWidget {
   const EditorDashboard({super.key});
@@ -50,28 +50,24 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
   bool _isSaving = false;
   bool _isUploadingPdf = false;
 
-  void _onFormChanged() {
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.data.name)..addListener(_onFormChanged);
-    _titleController = TextEditingController(text: widget.data.title)..addListener(_onFormChanged);
-    _typewriterController = TextEditingController(text: widget.data.typewriterTexts.join(', '))..addListener(_onFormChanged);
-    _metricsController = TextEditingController(text: widget.data.metrics.map((m) => '${m.value}|${m.label.replaceAll('\n', '\\n')}').join('\n'))..addListener(_onFormChanged);
-    _bioController = TextEditingController(text: widget.data.bio)..addListener(_onFormChanged);
-    _profileImageController = TextEditingController(text: widget.data.profileImage)..addListener(_onFormChanged);
+    _nameController = TextEditingController(text: widget.data.name);
+    _titleController = TextEditingController(text: widget.data.title);
+    _typewriterController = TextEditingController(text: widget.data.typewriterTexts.join(', '));
+    _metricsController = TextEditingController(text: widget.data.metrics.map((m) => '${m.value}|${m.label.replaceAll('\\n', '\\\\n')}').join('\\n'));
+    _bioController = TextEditingController(text: widget.data.bio);
+    _profileImageController = TextEditingController(text: widget.data.profileImage);
     _skillController = TextEditingController();
     _education = List.from(widget.data.education);
     _experience = List.from(widget.data.experience);
     _skills = List.from(widget.data.skills);
     _projects = List.from(widget.data.projects);
-    _githubController = TextEditingController(text: widget.data.socialLinks.github)..addListener(_onFormChanged);
-    _linkedinController = TextEditingController(text: widget.data.socialLinks.linkedin)..addListener(_onFormChanged);
-    _emailController = TextEditingController(text: widget.data.socialLinks.email)..addListener(_onFormChanged);
-    _resumeLinkController = TextEditingController(text: widget.data.resumeLink)..addListener(_onFormChanged);
+    _githubController = TextEditingController(text: widget.data.socialLinks.github);
+    _linkedinController = TextEditingController(text: widget.data.socialLinks.linkedin);
+    _emailController = TextEditingController(text: widget.data.socialLinks.email);
+    _resumeLinkController = TextEditingController(text: widget.data.resumeLink);
   }
 
   @override
@@ -90,14 +86,15 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     super.dispose();
   }
 
-  PortfolioData _getCurrentData() {
-    return widget.data.copyWith(
+  Future<void> _saveData() async {
+    setState(() => _isSaving = true);
+    final newData = widget.data.copyWith(
       name: _nameController.text,
       title: _titleController.text,
       typewriterTexts: _typewriterController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-      metrics: _metricsController.text.split('\n').map((line) {
+      metrics: _metricsController.text.split('\\n').map((line) {
         final parts = line.split('|');
-        if (parts.length == 2) return MetricData(value: parts[0].trim(), label: parts[1].replaceAll('\\n', '\n').trim());
+        if (parts.length == 2) return MetricData(value: parts[0].trim(), label: parts[1].replaceAll('\\\\n', '\\n').trim());
         return null;
       }).whereType<MetricData>().toList(),
       bio: _bioController.text,
@@ -113,11 +110,6 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
       resumeLink: _resumeLinkController.text,
       profileImage: _profileImageController.text,
     );
-  }
-
-  Future<void> _saveData() async {
-    setState(() => _isSaving = true);
-    final newData = _getCurrentData();
 
     try {
       final service = ref.read(githubServiceProvider);
@@ -167,81 +159,44 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
 
   @override
   Widget build(BuildContext context) {
-    final editorWidget = DefaultTabController(
+    return DefaultTabController(
       length: 4,
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) {
-            SystemNavigator.pop();
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Editor Dashboard'),
-            actions: [
-              TextButton.icon(
-                icon: const Icon(Icons.exit_to_app, color: Colors.white),
-                label: const Text('Exit Editor', style: TextStyle(color: Colors.white)),
-                onPressed: () {
-                  ref.read(githubTokenProvider.notifier).setToken(null);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PortfolioScreen()),
-                  );
-                },
-              ),
-              const SizedBox(width: 16),
-            ],
-            bottom: const TabBar(
-              isScrollable: true,
-              tabs: [
-                Tab(icon: Icon(Icons.person), text: 'Profile & Socials'),
-                Tab(icon: Icon(Icons.work), text: 'Experience & Edu'),
-                Tab(icon: Icon(Icons.code), text: 'Projects'),
-                Tab(icon: Icon(Icons.star), text: 'Skills & Resume'),
-              ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Editor Dashboard'),
+          actions: [
+            TextButton.icon(
+              icon: const Icon(Icons.exit_to_app, color: Colors.white),
+              label: const Text('Exit Editor', style: TextStyle(color: Colors.white)),
+              onPressed: () => ref.read(githubTokenProvider.notifier).setToken(null),
             ),
-          ),
-          body: TabBarView(
-            children: [
-              _buildProfileTab(),
-              _buildExperienceTab(),
-              _buildProjectsTab(),
-              _buildSkillsResumeTab(),
+            const SizedBox(width: 16),
+          ],
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: [
+              Tab(icon: Icon(Icons.person), text: 'Profile & Socials'),
+              Tab(icon: Icon(Icons.work), text: 'Experience & Edu'),
+              Tab(icon: Icon(Icons.code), text: 'Projects'),
+              Tab(icon: Icon(Icons.star), text: 'Skills & Resume'),
             ],
-          ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: _isSaving ? null : _saveData,
-            icon: _isSaving ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.save),
-            label: Text(_isSaving ? 'Saving...' : 'Save Changes'),
-            backgroundColor: Colors.deepPurpleAccent,
           ),
         ),
+        body: TabBarView(
+          children: [
+            _buildProfileTab(),
+            _buildExperienceTab(),
+            _buildProjectsTab(),
+            _buildSkillsResumeTab(),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _isSaving ? null : _saveData,
+          icon: _isSaving ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.save),
+          label: Text(_isSaving ? 'Saving...' : 'Save Changes'),
+          backgroundColor: Colors.deepPurpleAccent,
+        ),
       ),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 1000) {
-          return Row(
-            children: [
-              Expanded(flex: 1, child: editorWidget),
-              Container(width: 1, color: Theme.of(context).dividerColor),
-              Expanded(
-                flex: 1,
-                child: ProviderScope(
-                  overrides: [
-                    portfolioDataProvider.overrideWith((ref) async => _getCurrentData()),
-                  ],
-                  child: const PortfolioScreen(),
-                ),
-              ),
-            ],
-          );
-        }
-        return editorWidget;
-      },
     );
   }
 
@@ -298,23 +253,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
             ElevatedButton.icon(onPressed: () => setState(() => _experience.add(Experience(role: '', company: '', duration: '', description: ''))), icon: const Icon(Icons.add), label: const Text('Add')),
           ],
         ),
-        const Text("Drag and drop to reorder items", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
-        const SizedBox(height: 8),
-        ReorderableListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = _experience.removeAt(oldIndex);
-              _experience.insert(newIndex, item);
-            });
-          },
-          children: [
-            for (int i = 0; i < _experience.length; i++)
-              _buildExperienceCard(i, _experience[i], Key('exp_$i')),
-          ],
-        ),
+        ..._experience.asMap().entries.map((e) => _buildExperienceCard(e.key, e.value)).toList(),
         const SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -323,23 +262,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
             ElevatedButton.icon(onPressed: () => setState(() => _education.add(CollegeDetails(institution: '', degree: '', year: '', imagePath: ''))), icon: const Icon(Icons.add), label: const Text('Add')),
           ],
         ),
-        const Text("Drag and drop to reorder items", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
-        const SizedBox(height: 8),
-        ReorderableListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = _education.removeAt(oldIndex);
-              _education.insert(newIndex, item);
-            });
-          },
-          children: [
-            for (int i = 0; i < _education.length; i++)
-              _buildEducationCard(i, _education[i], Key('edu_$i')),
-          ],
-        ),
+        ..._education.asMap().entries.map((e) => _buildEducationCard(e.key, e.value)).toList(),
       ],
     );
   }
@@ -355,23 +278,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
             ElevatedButton.icon(onPressed: () => setState(() => _projects.add(Project(title: '', description: '', url: ''))), icon: const Icon(Icons.add), label: const Text('Add Project')),
           ],
         ),
-        const Text("Drag and drop to reorder items", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
-        const SizedBox(height: 8),
-        ReorderableListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = _projects.removeAt(oldIndex);
-              _projects.insert(newIndex, item);
-            });
-          },
-          children: [
-            for (int i = 0; i < _projects.length; i++)
-              _buildProjectCard(i, _projects[i], Key('proj_$i')),
-          ],
-        ),
+        ..._projects.asMap().entries.map((e) => _buildProjectCard(e.key, e.value)).toList(),
       ],
     );
   }
@@ -463,18 +370,11 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     );
   }
 
-  Widget _buildExperienceCard(int index, Experience exp, Key key) {
+  Widget _buildExperienceCard(int index, Experience exp) {
     return Card(
-      key: key,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ExpansionTile(
-        title: Row(
-          children: [
-            const Icon(Icons.drag_handle, color: Colors.grey),
-            const SizedBox(width: 8),
-            Expanded(child: Text(exp.role.isEmpty ? 'New Experience' : exp.role)),
-          ],
-        ),
+        title: Text(exp.role.isEmpty ? 'New Experience' : exp.role),
         childrenPadding: const EdgeInsets.all(16),
         children: [
           Row(
@@ -503,18 +403,11 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     );
   }
 
-  Widget _buildEducationCard(int index, CollegeDetails edu, Key key) {
+  Widget _buildEducationCard(int index, CollegeDetails edu) {
     return Card(
-      key: key,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ExpansionTile(
-        title: Row(
-          children: [
-            const Icon(Icons.drag_handle, color: Colors.grey),
-            const SizedBox(width: 8),
-            Expanded(child: Text(edu.institution.isEmpty ? 'New Education' : edu.institution)),
-          ],
-        ),
+        title: Text(edu.institution.isEmpty ? 'New Education' : edu.institution),
         childrenPadding: const EdgeInsets.all(16),
         children: [
           Row(
@@ -534,18 +427,11 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     );
   }
 
-  Widget _buildProjectCard(int index, Project project, Key key) {
+  Widget _buildProjectCard(int index, Project project) {
     return Card(
-      key: key,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ExpansionTile(
-        title: Row(
-          children: [
-            const Icon(Icons.drag_handle, color: Colors.grey),
-            const SizedBox(width: 8),
-            Expanded(child: Text(project.title.isEmpty ? 'New Project' : project.title)),
-          ],
-        ),
+        title: Text(project.title.isEmpty ? 'New Project' : project.title),
         childrenPadding: const EdgeInsets.all(16),
         children: [
           Row(
@@ -576,3 +462,7 @@ class _EditorFormState extends ConsumerState<_EditorForm> {
     );
   }
 }
+"""
+
+with open('lib/screens/android/editor_dashboard.dart', 'w') as f:
+    f.write(code)

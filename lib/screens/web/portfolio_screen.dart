@@ -5,10 +5,17 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../providers/github_provider.dart';
 import '../../models/portfolio_data.dart';
 import '../../config.dart';
+
+import 'widgets/experience_card.dart';
+import 'widgets/education_card.dart';
+import 'widgets/project_row.dart';
+
 import '../../main.dart';
 
 class PortfolioScreen extends ConsumerStatefulWidget {
@@ -44,7 +51,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
 
     return Scaffold(
       
-      endDrawer: Drawer(
+        endDrawer: Drawer(
         
         child: portfolioData.when(
           data: (data) => ListView(
@@ -89,7 +96,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
           error: (e, _) => const SizedBox(),
         ),
       ),
-      floatingActionButton: enableWebEditor
+      floatingActionButton: (!kIsWeb && enableWebEditor)
           ? FloatingActionButton(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditorEntry())),
               backgroundColor: Colors.deepPurpleAccent,
@@ -105,10 +112,11 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
   }
 
   Widget _buildContent(PortfolioData data) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 800;
+    return LayoutBuilder(builder: (context, constraints) {
+      final screenWidth = constraints.maxWidth;
+      final isDesktop = screenWidth > 800;
 
-    return Stack(
+      return Stack(
       children: [
         SingleChildScrollView(
           controller: _scrollController,
@@ -313,7 +321,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     children: [
                       _sectionTitle('Experience'),
                       const SizedBox(height: 40),
-                      ...data.experience.map((exp) => _ExperienceCard(exp: exp)).toList(),
+                      ...data.experience.map((exp) => ExperienceCard(exp: exp)).toList(),
                     ],
                   ),
                 ),
@@ -327,7 +335,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     children: [
                       _sectionTitle('Education'),
                       const SizedBox(height: 40),
-                      ...data.education.map((edu) => _EducationCard(edu: edu)).toList(),
+                      ...data.education.map((edu) => EducationCard(edu: edu)).toList(),
                     ],
                   ),
                 ),
@@ -481,6 +489,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         ),
       ],
     );
+    });
   }
 
   Widget _sectionTitle(String title) {
@@ -530,30 +539,13 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
     final firstHalf = projects.sublist(0, (projects.length / 2).ceil());
     final secondHalf = projects.sublist((projects.length / 2).ceil());
 
-    Widget buildRow(List<Project> rowProjects) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: rowProjects.map((p) => Padding(
-            padding: const EdgeInsets.only(right: 30),
-            child: SizedBox(
-              width: isDesktop ? 400 : MediaQuery.of(context).size.width * 0.85,
-              child: _ProjectCard(project: p, isDesktop: isDesktop),
-            ),
-          )).toList(),
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildRow(firstHalf),
+        ProjectRow(projects: firstHalf, isDesktop: isDesktop),
         if (secondHalf.isNotEmpty) ...[
           const SizedBox(height: 30),
-          buildRow(secondHalf),
+          ProjectRow(projects: secondHalf, isDesktop: isDesktop),
         ],
       ],
     );
@@ -602,442 +594,9 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
   }
 }
 
-class _ExperienceCard extends StatelessWidget {
-  final Experience exp;
-  const _ExperienceCard({required this.exp});
 
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 800),
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: EdgeInsets.all(isMobile ? 24 : 32),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: isMobile 
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurpleAccent.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            exp.role,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            exp.company,
-                            style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Text(
-                    exp.duration,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  exp.description,
-                  style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.6),
-                ),
-                if (exp.imagePath.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      exp.imagePath,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
-              ],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurpleAccent.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.work_outline, color: Colors.deepPurpleAccent, size: 32),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  exp.role,
-                                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  exp.company,
-                                  style: TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withOpacity(0.1)),
-                            ),
-                            child: Text(
-                              exp.duration,
-                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        exp.description,
-                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.8),
-                      ),
-                      if (exp.imagePath.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            exp.imagePath,
-                            height: 300,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    ).animate().fade().slideX(begin: 0.1);
-  }
-}
 
-class _EducationCard extends StatelessWidget {
-  final CollegeDetails edu;
-  const _EducationCard({required this.edu});
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
-
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 800),
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: EdgeInsets.all(isMobile ? 24 : 32),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: isMobile
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        shape: BoxShape.circle,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Image.asset(
-                          edu.imagePath,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 60,
-                            height: 60,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
-                            child: Icon(Icons.school_outlined, size: 28, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            edu.institution,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            edu.degree,
-                            style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Text(
-                    edu.year,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                ),
-              ],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: Image.asset(
-                      edu.imagePath,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 80,
-                        height: 80,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10),
-                        child: Icon(Icons.school_outlined, size: 40, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 32),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              edu.institution,
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.5),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              edu.degree,
-                              style: TextStyle(fontSize: 18, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
-                        ),
-                        child: Text(
-                          edu.year,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600, fontSize: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    ).animate().fade().slideX(begin: 0.1);
-  }
-}
-
-class _ProjectCard extends StatefulWidget {
-  final Project project;
-  final bool isDesktop;
-
-  const _ProjectCard({required this.project, required this.isDesktop});
-
-  @override
-  State<_ProjectCard> createState() => _ProjectCardState();
-}
-
-class _ProjectCardState extends State<_ProjectCard> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.folder_open, size: 40, color: Colors.deepPurpleAccent),
-          const SizedBox(height: 20),
-          Text(
-            widget.project.title,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-          ),
-          if (widget.project.role.isNotEmpty || widget.project.companyName.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              [if (widget.project.role.isNotEmpty) widget.project.role, if (widget.project.companyName.isNotEmpty) widget.project.companyName].join(' at '),
-              style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
-            ),
-          ],
-          const SizedBox(height: 16),
-          LayoutBuilder(builder: (context, size) {
-            final span = TextSpan(text: widget.project.description, style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5));
-            final tp = TextPainter(text: span, maxLines: 7, textDirection: TextDirection.ltr);
-            tp.layout(maxWidth: size.maxWidth);
-            
-            if (tp.didExceedMaxLines) {
-              return AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                alignment: Alignment.topCenter,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.project.description,
-                      style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
-                      maxLines: _isExpanded ? null : 7,
-                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () => setState(() => _isExpanded = !_isExpanded),
-                      child: Text(
-                        _isExpanded ? "View Less" : "View More",
-                        style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              return Text(
-                widget.project.description,
-                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
-              );
-            }
-          }),
-          if (widget.project.imagePath.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                widget.project.imagePath,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          if (widget.project.url.isNotEmpty)
-            InkWell(
-              onTap: () async {
-                final url = Uri.parse(widget.project.url);
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url);
-                }
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text('View Project', style: TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold, fontSize: 16)),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: Colors.deepPurpleAccent, size: 16),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
 
 class _SkillMarquee extends StatefulWidget {
   final List<String> skills;

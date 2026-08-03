@@ -34,6 +34,7 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'sanjay flutter SDE',
       themeMode: themeMode,
       theme: ThemeData(
